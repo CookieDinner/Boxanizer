@@ -1,0 +1,7 @@
+CREATE TABLE Boxes (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    code TEXT NOT NULL,
+    name TEXT,
+    description TEXT,
+    image BLOB
+);

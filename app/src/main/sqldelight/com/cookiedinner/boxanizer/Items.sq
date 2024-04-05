@@ -1,0 +1,8 @@
+CREATE TABLE Items (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description  TEXT,
+    image BLOB
+);
+
+CREATE INDEX item_name ON Items(name);
