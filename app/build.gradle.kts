@@ -13,7 +13,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "v1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -60,17 +60,23 @@ dependencies {
     implementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material.icons)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.navigation)
+    implementation(libs.androidx.datastore)
 
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 
     implementation(libs.sqldelight.android.driver)
+
+    implementation(libs.coil)
 
     // Test libraries
     testImplementation(libs.junit)

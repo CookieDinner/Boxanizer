@@ -1,0 +1,14 @@
+CREATE TABLE Item (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description  TEXT,
+    image BLOB
+);
+
+CREATE INDEX item_name ON Item(name);
+
+selectAll:
+SELECT * FROM Item;
+
+selectById:
+SELECT * FROM Item WHERE id == :itemId;

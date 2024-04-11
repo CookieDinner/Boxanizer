@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="personalization">PERSONALIZACJA</string>
+    <string name="pref_dynamic_colors">Dynamiczne kolory</string>
+    <string name="pref_dynamic_colors_description">Kolory aplikacji zmieniają się dynamicznie na podstawie ustawionej tapety telefonu</string>
+    <string name="pref_theme">Wygląd</string>
+    <string name="boxes">Pudełka</string>
+    <string name="items">Przedmioty</string>
+    <string name="more">Więcej</string>
+    <string name="system_theme">Motyw urządzenia</string>
+    <string name="dark_theme">Ciemny motyw</string>
+    <string name="light_theme">Jasny motyw</string>
+    <string name="settings">Ustawienia</string>
+    <string name="name">Nazwa</string>
+    <string name="description">Opis</string>
+    <string name="code">Kod</string>
+    <string name="language">Język</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_en">Angielski</string>
+    <string name="about">O APLIKACJI</string>
+    <string name="app_version">Wersja aplikacji</string>
+    <string name="check_for_updates">Sprawdź aktualizacje</string>
+</resources>

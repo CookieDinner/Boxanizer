@@ -1,7 +1,13 @@
-CREATE TABLE Boxes (
+CREATE TABLE Box (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     code TEXT NOT NULL,
     name TEXT,
     description TEXT,
     image BLOB
 );
+
+selectAll:
+SELECT * FROM Box;
+
+selectById:
+SELECT * FROM Box WHERE id == :boxId;
