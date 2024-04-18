@@ -1,7 +1,7 @@
 CREATE TABLE Box (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    code TEXT NOT NULL,
-    name TEXT,
+    code TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
     description TEXT,
     image BLOB
 );
@@ -10,4 +10,22 @@ selectAll:
 SELECT * FROM Box;
 
 selectById:
-SELECT * FROM Box WHERE id == :boxId;
+SELECT * FROM Box WHERE id = :boxId;
+
+selectByCode:
+SELECT * FROM Box WHERE code = :code;
+
+selectByItemNames:
+SELECT Box.* FROM Box
+INNER JOIN BoxItem ON Box.id = BoxItem.boxId
+INNER JOIN Item ON BoxItem.itemId = Item.id
+WHERE Item.name LIKE '%' || :itemName || '%';
+
+insert:
+INSERT OR REPLACE INTO Box VALUES (:id, :code, :name, :description, :image);
+
+selectLastBox:
+SELECT * FROM Box WHERE id = last_insert_rowid();
+
+
+

@@ -33,4 +33,8 @@ class Navigator {
             launchSingleTop = singleTop
         }
     }
+
+    fun popBackStack() {
+        navController?.popBackStack()
+    }
 }

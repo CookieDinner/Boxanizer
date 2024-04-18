@@ -11,4 +11,4 @@ selectAll:
 SELECT * FROM Item;
 
 selectById:
-SELECT * FROM Item WHERE id == :itemId;
+SELECT * FROM Item WHERE id = :itemId;

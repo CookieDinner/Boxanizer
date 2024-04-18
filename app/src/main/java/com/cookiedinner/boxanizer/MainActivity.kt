@@ -7,11 +7,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cookiedinner.boxanizer.core.data.DataStoreManager
 import com.cookiedinner.boxanizer.core.navigation.AppNavigationScreen
 import com.cookiedinner.boxanizer.core.theme.AppTheme
@@ -25,7 +22,7 @@ class MainActivity : ComponentActivity() {
             val theme = dataStoreManager.collectThemeWithLifecycle()
             val dynamicTheme = dataStoreManager.collectDynamicThemeWithLifecycle()
             AppTheme(
-                darkTheme = when(theme.value) {
+                darkTheme = when (theme.value) {
                     DataStoreManager.ThemeChoice.SYSTEM -> isSystemInDarkTheme()
                     DataStoreManager.ThemeChoice.DARK -> true
                     DataStoreManager.ThemeChoice.LIGHT -> false

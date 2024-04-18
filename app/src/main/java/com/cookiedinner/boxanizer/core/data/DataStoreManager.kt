@@ -10,7 +10,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.map
@@ -56,7 +55,7 @@ class DataStoreManager(private val context: Context) {
         }
     }
 
-    suspend fun switchLanguage(newLanguage: LanguageChoice) {
+    fun switchLanguage(newLanguage: LanguageChoice) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.getSystemService(LocaleManager::class.java).applicationLocales = LocaleList.forLanguageTags(newLanguage.code)
         } else {

@@ -20,4 +20,10 @@
     <string name="about">O APLIKACJI</string>
     <string name="app_version">Wersja aplikacji</string>
     <string name="check_for_updates">Sprawdź aktualizacje</string>
+    <string name="empty_boxes">Nie masz jeszcze żadnych pudełek.\nAby dodać jedno kliknij przycisk \"+\" w prawym dolnym rogu ekranu</string>
+    <string name="empty_boxes_query">Nie znaleziono pudełek dla wpisanego zapytania</string>
+    <string name="add_box">Dodaj pudełko</string>
+    <string name="boxDetailsError">Błąd pobierania danych pudełka</string>
+    <string name="boxesError">Błąd pobierania pudełek</string>
+    <string name="save_box">Zapisz pudełko</string>
 </resources>

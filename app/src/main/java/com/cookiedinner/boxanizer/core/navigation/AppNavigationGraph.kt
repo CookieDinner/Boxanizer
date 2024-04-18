@@ -2,8 +2,11 @@ package com.cookiedinner.boxanizer.core.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.cookiedinner.boxanizer.main.screens.BoxDetailsScreen
 import com.cookiedinner.boxanizer.main.screens.BoxesScreen
 import com.cookiedinner.boxanizer.main.screens.ItemsScreen
 import com.cookiedinner.boxanizer.main.screens.SettingsScreen
@@ -28,6 +31,18 @@ fun AppNavigationGraph(
         }
         composable(NavigationScreens.SettingsScreen.route) {
             SettingsScreen()
+        }
+        composable(
+            route = "${NavigationScreens.BoxDetailsScreen.route}?boxId={box_id}",
+            arguments = listOf(
+                navArgument("box_id") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )
+        ) {
+            val boxId = it.arguments?.getLong("box_id") ?: -1L
+            BoxDetailsScreen(boxId = boxId)
         }
     }
 }

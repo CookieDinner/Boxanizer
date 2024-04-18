@@ -20,4 +20,10 @@
     <string name="about">ABOUT</string>
     <string name="app_version">App version</string>
     <string name="check_for_updates">Check for updates</string>
+    <string name="empty_boxes">You don\'t have any boxes yet.\nTo add one press the \"+\" button in the bottom right corner of the screen</string>
+    <string name="empty_boxes_query">No boxes found for the typed in query</string>
+    <string name="add_box">Add box</string>
+    <string name="boxDetailsError">Failed to fetch box details</string>
+    <string name="boxesError">Failed to fetch boxes</string>
+    <string name="save_box">Save box</string>
 </resources>

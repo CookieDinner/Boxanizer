@@ -101,7 +101,7 @@ fun AppTheme(
         else -> LightColors
     }
     val view = LocalView.current
-    val statusBarColor  = animateColor(colorScheme.background)
+    val statusBarColor = animateColor(colorScheme.background)
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
