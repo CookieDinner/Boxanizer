@@ -64,6 +64,8 @@ fun AppNavigationScreen(
     val fabVisible = viewModel.fabVisible.collectAsStateWithLifecycle()
     val bottomBarVisible = viewModel.bottomBarVisible.collectAsStateWithLifecycle()
 
+    boxesViewModel.setSnackbarHost(viewModel.snackbarHostState)
+
     AppNavigationScreenContent(
         currentRoute = backStackEntry.value?.destination?.route,
         fabVisible = fabVisible.value,

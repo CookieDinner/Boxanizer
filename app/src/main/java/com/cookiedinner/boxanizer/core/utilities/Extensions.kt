@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 import org.koin.androidx.compose.koinViewModel
 
 fun getPackageInfo(
@@ -69,11 +69,11 @@ inline fun <reified T : androidx.lifecycle.ViewModel> koinActivityViewModel() = 
 )
 
 @Composable
-fun <T> Flow<T>.collectFlowOnLifecycle(onCollect: (T) -> Unit) {
+fun <T> FlowObserver(flow: SharedFlow<T>, onCollect: suspend (T) -> Unit) {
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            this@collectFlowOnLifecycle.collect {
+            flow.collect {
                 onCollect(it)
             }
         }

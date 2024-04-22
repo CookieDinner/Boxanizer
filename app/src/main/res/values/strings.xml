@@ -26,4 +26,9 @@
     <string name="boxDetailsError">Failed to fetch box details</string>
     <string name="boxesError">Failed to fetch boxes</string>
     <string name="save_box">Save box</string>
+    <string name="scanner">Scanner</string>
+    <string name="code_error_1">Code can\'t be empty</string>
+    <string name="code_error_2">Code already exists</string>
+    <string name="name_error_1">Name can\'t be empty</string>
+    <string name="boxSaveError">Couldn\'t save the box</string>
 </resources>

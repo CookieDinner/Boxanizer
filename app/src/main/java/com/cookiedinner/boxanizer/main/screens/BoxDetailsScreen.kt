@@ -1,27 +1,11 @@
 package com.cookiedinner.boxanizer.main.screens
 
-import android.content.res.Configuration
-import android.util.Log
-import androidx.activity.compose.BackHandler
-import androidx.camera.view.LifecycleCameraController
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterExitState
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,27 +13,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddAPhoto
-import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.RemoveCircle
-import androidx.compose.material.icons.filled.RemoveCircleOutline
-import androidx.compose.material.ripple.LocalRippleTheme
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalAbsoluteTonalElevation
-import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,24 +33,27 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalAutofill
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
+import coil.size.Size
 import com.cookiedinner.boxanizer.Box
 import com.cookiedinner.boxanizer.Item
+import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.navigation.Navigator
-import com.cookiedinner.boxanizer.core.utilities.BarcodeAnalyzer
-import com.cookiedinner.boxanizer.core.utilities.collectFlowOnLifecycle
+import com.cookiedinner.boxanizer.core.utilities.FlowObserver
 import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
-import com.cookiedinner.boxanizer.main.components.CameraComponent
+import com.cookiedinner.boxanizer.main.components.CameraDialog
+import com.cookiedinner.boxanizer.main.components.CameraPhotoPhase
+import com.cookiedinner.boxanizer.main.components.CameraType
 import com.cookiedinner.boxanizer.main.viewmodels.BoxesViewModel
 import com.cookiedinner.boxanizer.main.viewmodels.MainViewModel
-import kotlinx.coroutines.delay
 import org.koin.compose.koinInject
 
 @Composable
@@ -87,7 +65,9 @@ fun BoxDetailsScreen(
 ) {
     val currentBox = viewModel.currentBox.collectAsStateWithLifecycle()
     val originalBox = viewModel.originalCurrentBox.collectAsStateWithLifecycle()
+
     val codeError = viewModel.codeError.collectAsStateWithLifecycle()
+    val nameError = viewModel.nameError.collectAsStateWithLifecycle()
 
     var initialized by rememberSaveable {
         mutableStateOf(false)
@@ -99,11 +79,11 @@ fun BoxDetailsScreen(
         }
     }
 
-    LaunchedEffect(currentBox.value, originalBox.value, codeError.value) {
-        mainViewModel.changeFabVisibility(currentBox.value != originalBox.value && !codeError.value)
+    LaunchedEffect(currentBox.value, originalBox.value, codeError.value, nameError.value) {
+        mainViewModel.changeFabVisibility(currentBox.value != originalBox.value && codeError.value == 0 && !nameError.value)
     }
 
-    mainViewModel.fabActionListener.collectFlowOnLifecycle {
+    FlowObserver(mainViewModel.fabActionListener) {
         viewModel.saveBox {
             navigator.popBackStack()
         }
@@ -116,28 +96,80 @@ fun BoxDetailsScreen(
             viewModel.editCurrentBox(it)
         },
         codeError = codeError.value,
+        nameError = nameError.value
     )
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun BoxDetailsScreenContent(
     box: Box,
     items: List<Item>,
     editBox: (Box) -> Unit,
-    codeError: Boolean
+    codeError: Int,
+    nameError: Boolean
 ) {
     var cameraDialogVisible by rememberSaveable {
         mutableStateOf(false)
     }
-    val orientation = LocalConfiguration.current.orientation
-
-    BackHandler(
-        enabled = cameraDialogVisible
-    ) {
-        cameraDialogVisible = false
-
+    var cameraDialogType by rememberSaveable {
+        mutableStateOf(CameraType.SCANNER)
     }
+    var photoLoading by remember {
+        mutableStateOf(false)
+    }
+
+    CameraDialog(
+        visible = cameraDialogVisible,
+        onDismissRequest = { cameraDialogVisible = false },
+        onScanned = if (cameraDialogType == CameraType.SCANNER) {
+            { code ->
+                cameraDialogVisible = false
+                editBox(
+                    box.copy(
+                        code = code
+                    )
+                )
+            }
+        } else null,
+        takePhoto = if (cameraDialogType == CameraType.PHOTO) {
+            { phase, byteArray ->
+                when (phase) {
+                    CameraPhotoPhase.TAKING -> {
+                        cameraDialogVisible = false
+                        photoLoading = true
+                    }
+
+                    CameraPhotoPhase.DONE -> {
+                        if (byteArray != null) {
+                            editBox(
+                                box.copy(
+                                    image = byteArray
+                                )
+                            )
+                        }
+                        photoLoading = false
+                    }
+
+                    CameraPhotoPhase.ERROR -> {
+                        photoLoading = false
+                    }
+                }
+            }
+        } else null,
+        overlay = if (cameraDialogType == CameraType.PHOTO) {
+            {
+                Column(
+                    modifier = Modifier.height(180.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    HorizontalDivider()
+                    HorizontalDivider()
+                }
+            }
+        } else {
+            {}
+        }
+    )
 
     Box(
         contentAlignment = Alignment.Center
@@ -147,38 +179,83 @@ private fun BoxDetailsScreenContent(
             contentPadding = PaddingValues(12.dp)
         ) {
             item {
-                OutlinedTextField(
+                Surface(
                     modifier = Modifier
-                        .height(120.dp)
+                        .height(180.dp)
                         .fillMaxWidth()
-                        .clickable {
-                            Log.d("Tests", "BoxDetailsScreenContent: Click")
+                        .clickable(!photoLoading) {
+                            cameraDialogType = CameraType.PHOTO
+                            cameraDialogVisible = true
                         },
-                    value = "",
-                    onValueChange = {},
-                    enabled = false,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledBorderColor = OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor,
-                        disabledPlaceholderColor = OutlinedTextFieldDefaults.colors().unfocusedPlaceholderColor
-                    ),
-                    placeholder = {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Icon(imageVector = Icons.Default.AddAPhoto, contentDescription = "Add photo")
+                    shape = MaterialTheme.shapes.extraSmall,
+                    color = MaterialTheme.colorScheme.background,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        when {
+                            photoLoading -> CircularProgressIndicator(Modifier.size(48.dp))
+                            box.image == null -> {
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Icon(imageVector = Icons.Default.AddAPhoto, contentDescription = "Add photo")
+                                }
+                            }
+
+                            else -> {
+                                SubcomposeAsyncImage(
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .fillMaxSize()
+                                        .clip(MaterialTheme.shapes.extraSmall),
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(box.image)
+                                        .crossfade(true)
+                                        .size(Size.ORIGINAL)
+                                        .build(),
+                                    contentScale = ContentScale.FillWidth,
+                                    error = {
+                                        Icon(
+                                            imageVector = Icons.Filled.ImageNotSupported,
+                                            tint = Color.LightGray,
+                                            contentDescription = "Error"
+                                        )
+                                    },
+                                    loading = {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircularProgressIndicator(Modifier.size(48.dp))
+                                        }
+                                    },
+                                    contentDescription = ""
+                                )
+                            }
                         }
-                    },
-                )
+                    }
+                }
             }
             item {
                 OutlinedTextField(
                     modifier = Modifier.padding(top = 8.dp),
                     value = box.code,
                     label = {
-                        Text(text = "Code")
+                        Text(text = stringResource(id = R.string.code))
                     },
-                    isError = codeError,
-                    supportingText = if (codeError) {
-                        { Text(text = "Code already exists") }
-                    } else null,
+                    isError = codeError != 0,
+                    supportingText = when (codeError) {
+                        1 -> {
+                            { Text(text = stringResource(R.string.code_error_1)) }
+                        }
+
+                        2 -> {
+                            { Text(text = stringResource(R.string.code_error_2)) }
+                        }
+
+                        else -> null
+                    },
                     onValueChange = {
                         editBox(
                             box.copy(
@@ -189,12 +266,13 @@ private fun BoxDetailsScreenContent(
                     trailingIcon = {
                         IconButton(
                             onClick = {
+                                cameraDialogType = CameraType.SCANNER
                                 cameraDialogVisible = true
                             }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.QrCodeScanner,
-                                contentDescription = "Scanner"
+                                contentDescription = stringResource(R.string.scanner)
                             )
                         }
                     }
@@ -205,8 +283,12 @@ private fun BoxDetailsScreenContent(
                     modifier = Modifier.padding(top = 8.dp),
                     value = box.name,
                     label = {
-                        Text(text = "Name")
+                        Text(text = stringResource(R.string.name))
                     },
+                    isError = nameError,
+                    supportingText = if (nameError) {
+                        { Text(text = stringResource(R.string.name_error_1)) }
+                    } else null,
                     onValueChange = {
                         editBox(
                             box.copy(
@@ -221,7 +303,7 @@ private fun BoxDetailsScreenContent(
                     modifier = Modifier.padding(top = 8.dp),
                     value = box.description ?: "",
                     label = {
-                        Text(text = "Description")
+                        Text(text = stringResource(R.string.description))
                     },
                     onValueChange = {
                         editBox(
@@ -231,53 +313,6 @@ private fun BoxDetailsScreenContent(
                         )
                     }
                 )
-            }
-        }
-
-        AnimatedVisibility(
-            visible = cameraDialogVisible,
-            enter = fadeIn(tween(50)),
-            exit = fadeOut(tween(300, 300))
-        ) {
-            Dialog(
-                onDismissRequest = { cameraDialogVisible = false },
-                properties = DialogProperties(
-                    usePlatformDefaultWidth = false
-                )
-            ) {
-                AnimatedVisibility(
-                    visible = cameraDialogVisible && transition.currentState == EnterExitState.Visible,
-                    enter = fadeIn(tween(700)) + scaleIn(tween(700)),
-                    exit = fadeOut(tween(500)) + scaleOut(tween(700))
-                ) test@{
-                    OutlinedCard(
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .then(
-                                if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                                    Modifier
-                                        .fillMaxWidth(0.95f)
-                                        .aspectRatio(3f / 4)
-                                else
-                                    Modifier
-                                        .fillMaxHeight(0.95f)
-                                        .aspectRatio(4f / 3)
-                            )
-                    ) {
-                        if (cameraDialogVisible && !transition.isRunning) {
-                            CameraComponent(
-                                imageAnalyzer = BarcodeAnalyzer { barcode ->
-                                    cameraDialogVisible = false
-                                    editBox(
-                                        box.copy(
-                                            code = barcode
-                                        )
-                                    )
-                                }
-                            )
-                        }
-                    }
-                }
             }
         }
     }

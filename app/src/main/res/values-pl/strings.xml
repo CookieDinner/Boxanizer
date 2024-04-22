@@ -26,4 +26,9 @@
     <string name="boxDetailsError">Błąd pobierania danych pudełka</string>
     <string name="boxesError">Błąd pobierania pudełek</string>
     <string name="save_box">Zapisz pudełko</string>
+    <string name="scanner">Skaner</string>
+    <string name="code_error_1">Kod nie może być pusty</string>
+    <string name="code_error_2">Podany kod już istnieje</string>
+    <string name="name_error_1">Nazwa nie może być pusta</string>
+    <string name="boxSaveError">Nie udało się zapisać pudełka</string>
 </resources>

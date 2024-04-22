@@ -28,8 +28,11 @@ class BoxesViewModel(
     private val _currentBox = MutableStateFlow(emptyBox)
     val currentBox = _currentBox.asStateFlow()
 
-    private val _codeError = MutableStateFlow(false)
+    private val _codeError = MutableStateFlow(0)
     val codeError = _codeError.asStateFlow()
+
+    private val _nameError = MutableStateFlow(false)
+    val nameError = _nameError.asStateFlow()
 
     private val _originalCurrentBox = MutableStateFlow(emptyBox)
     val originalCurrentBox = _originalCurrentBox.asStateFlow()
@@ -60,7 +63,8 @@ class BoxesViewModel(
     fun getBoxDetails(boxId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                _codeError.value = false
+                _codeError.value = 0
+                _nameError.value = false
                 _currentBox.value = if (boxId == -1L) emptyBox else dataProvider.getBoxDetails(boxId)
                 _originalCurrentBox.value = _currentBox.value
             } catch (ex: Exception) {
@@ -70,14 +74,19 @@ class BoxesViewModel(
         }
     }
 
-    private var checkCodeJob: Job? = null
+    private var checkBoxJob: Job? = null
     fun editCurrentBox(box: Box) {
         _currentBox.value = box
-        checkCodeJob?.cancel()
-        checkCodeJob = viewModelScope.launch(Dispatchers.IO) {
+        checkBoxJob?.cancel()
+        checkBoxJob = viewModelScope.launch(Dispatchers.IO) {
             try {
+                _nameError.value = box.name.isBlank()
                 val codeBox = dataProvider.getBoxByCode(box.code)
-                _codeError.value = codeBox != null && codeBox.id != box.id && codeBox.code == box.code
+                _codeError.value = when {
+                    box.code.isBlank() -> 1
+                    codeBox != null && codeBox.id != box.id && codeBox.code == box.code -> 2
+                    else -> 0
+                }
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
@@ -104,7 +113,7 @@ class BoxesViewModel(
                 }
             } catch (ex: Exception) {
                 ex.printStackTrace()
-                snackbarHostState.safelyShowSnackbar("Error saving the box")
+                snackbarHostState.safelyShowSnackbar(context.getString(R.string.boxSaveError))
             }
         }
     }
