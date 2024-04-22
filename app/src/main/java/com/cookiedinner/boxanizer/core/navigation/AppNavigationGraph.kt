@@ -23,16 +23,16 @@ fun AppNavigationGraph(
         navController = navController,
         startDestination = NavigationScreens.BoxesScreen.route
     ) {
-        composable(NavigationScreens.BoxesScreen.route) {
+        customNavigationComposable(NavigationScreens.BoxesScreen.route) {
             BoxesScreen()
         }
-        composable(NavigationScreens.ItemsScreen.route) {
+        customNavigationComposable(NavigationScreens.ItemsScreen.route) {
             ItemsScreen()
         }
-        composable(NavigationScreens.SettingsScreen.route) {
+        customNavigationComposable(NavigationScreens.SettingsScreen.route) {
             SettingsScreen()
         }
-        composable(
+        customNavigationComposable(
             route = "${NavigationScreens.BoxDetailsScreen.route}?boxId={box_id}",
             arguments = listOf(
                 navArgument("box_id") {

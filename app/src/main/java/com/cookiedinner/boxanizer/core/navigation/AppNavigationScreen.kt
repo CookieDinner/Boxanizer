@@ -1,11 +1,18 @@
 package com.cookiedinner.boxanizer.core.navigation
 
+import android.view.Surface
+import android.view.SurfaceControl
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ViewList
@@ -28,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -54,12 +62,12 @@ fun AppNavigationScreen(
     val backStackEntry = navController.currentBackStackEntryAsState()
 
     val fabVisible = viewModel.fabVisible.collectAsStateWithLifecycle()
-
-    boxesViewModel.setSnackbarHost(viewModel.snackbarHostState)
+    val bottomBarVisible = viewModel.bottomBarVisible.collectAsStateWithLifecycle()
 
     AppNavigationScreenContent(
         currentRoute = backStackEntry.value?.destination?.route,
         fabVisible = fabVisible.value,
+        bottomBarVisible = bottomBarVisible.value,
         changeScreen = navigator::changeNavigationScreen,
         goToScreen = navigator::navigateToScreen,
         sendFabAction = viewModel::sendFabAction,
@@ -75,6 +83,7 @@ fun AppNavigationScreen(
 private fun AppNavigationScreenContent(
     currentRoute: String?,
     fabVisible: Boolean,
+    bottomBarVisible: Boolean,
     changeScreen: (String) -> Unit,
     goToScreen: (String) -> Unit,
     sendFabAction: (FabActions) -> Unit,
@@ -101,13 +110,13 @@ private fun AppNavigationScreenContent(
             selectedIcon = Icons.Filled.Settings
         )
     )
+    val navigationScreen = NavigationScreens.fromRoute(currentRoute)
     Scaffold(
         snackbarHost = snackbar,
         floatingActionButton = {
-            val navigationScreen = NavigationScreens.fromRoute(currentRoute)
             AnimatedVisibility(
                 visible = navigationScreen in listOf(NavigationScreens.BoxesScreen, NavigationScreens.ItemsScreen) ||
-                        (fabVisible && navigationScreen in listOf(NavigationScreens.BoxDetailsScreen)),
+                        fabVisible && navigationScreen in listOf(NavigationScreens.BoxDetailsScreen),
                 enter = fadeIn() + scaleIn(),
                 exit = fadeOut() + scaleOut()
             ) {
@@ -155,35 +164,41 @@ private fun AppNavigationScreenContent(
 
         },
         bottomBar = {
-            Surface(shadowElevation = 12.dp) {
-                BottomAppBar {
-                    bottomNavItems.forEach {
-                        val selected = it.route == NavigationScreens.fromRoute(currentRoute).route
-                        val selectedIfNested = it.nestedRoutes?.contains(NavigationScreens.fromRoute(currentRoute).route) ?: false
-                        NavigationBarItem(
-                            selected = selected || selectedIfNested,
-                            onClick = {
-                                if (!selected)
-                                    changeScreen(it.route)
-                            },
-                            label = {
-                                Text(
-                                    text = it.name,
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = if (selected || selectedIfNested) FontWeight.Bold else FontWeight.Medium
+            AnimatedVisibility(
+                visible = bottomBarVisible && navigationScreen.isMainScreen,
+                enter = fadeIn(tween(350)),
+                exit = fadeOut(tween(350))
+            ){
+                Surface(shadowElevation = 12.dp) {
+                    BottomAppBar {
+                        bottomNavItems.forEach {
+                            val selected = it.route == NavigationScreens.fromRoute(currentRoute).route
+                            val selectedIfNested = it.nestedRoutes?.contains(NavigationScreens.fromRoute(currentRoute).route) ?: false
+                            NavigationBarItem(
+                                selected = selected || selectedIfNested,
+                                onClick = {
+                                    if (!selected)
+                                        changeScreen(it.route)
+                                },
+                                label = {
+                                    Text(
+                                        text = it.name,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = if (selected || selectedIfNested) FontWeight.Bold else FontWeight.Medium
+                                        )
                                     )
-                                )
-                            },
-                            icon = {
-                                Icon(
-                                    imageVector = if (selected || selectedIfNested)
-                                        it.selectedIcon
-                                    else
-                                        it.unselectedIcon,
-                                    contentDescription = it.name
-                                )
-                            }
-                        )
+                                },
+                                icon = {
+                                    Icon(
+                                        imageVector = if (selected || selectedIfNested)
+                                            it.selectedIcon
+                                        else
+                                            it.unselectedIcon,
+                                        contentDescription = it.name
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }

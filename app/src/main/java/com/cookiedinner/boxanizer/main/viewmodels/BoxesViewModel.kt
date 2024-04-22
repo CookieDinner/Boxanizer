@@ -58,16 +58,14 @@ class BoxesViewModel(
     }
 
     fun getBoxDetails(boxId: Long) {
-        if (boxId != _currentBox.value.id) {
-            viewModelScope.launch(Dispatchers.IO) {
-                try {
-                    _codeError.value = false
-                    _currentBox.value = if (boxId == -1L) emptyBox else dataProvider.getBoxDetails(boxId)
-                    _originalCurrentBox.value = _currentBox.value
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                    snackbarHostState.safelyShowSnackbar(context.getString(R.string.boxDetailsError))
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _codeError.value = false
+                _currentBox.value = if (boxId == -1L) emptyBox else dataProvider.getBoxDetails(boxId)
+                _originalCurrentBox.value = _currentBox.value
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                snackbarHostState.safelyShowSnackbar(context.getString(R.string.boxDetailsError))
             }
         }
     }

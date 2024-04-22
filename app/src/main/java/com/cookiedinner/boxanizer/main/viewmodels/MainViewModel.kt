@@ -14,6 +14,9 @@ class MainViewModel : ViewModel() {
     private val _fabVisible = MutableStateFlow(true)
     val fabVisible = _fabVisible.asStateFlow()
 
+    private val _bottomBarVisible = MutableStateFlow(true)
+    val bottomBarVisible = _bottomBarVisible.asStateFlow()
+
     private val _fabActionListener = MutableSharedFlow<FabActions>(replay = 0)
     val fabActionListener = _fabActionListener.asSharedFlow()
 
@@ -21,6 +24,10 @@ class MainViewModel : ViewModel() {
 
     fun changeFabVisibility(visible: Boolean) {
         _fabVisible.value = visible
+    }
+
+    fun changeBottomBarVisibility(visible: Boolean) {
+        _bottomBarVisible.value = visible
     }
 
     fun sendFabAction(fabAction: FabActions) {
