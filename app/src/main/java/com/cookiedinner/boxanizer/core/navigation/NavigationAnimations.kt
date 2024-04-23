@@ -4,8 +4,12 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.Ease
 import androidx.compose.animation.core.EaseIn
 import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.EaseOutBack
+import androidx.compose.animation.core.EaseOutBounce
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -39,19 +43,13 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.getEnterTransition
         slideIntoContainer(
             towards = direction,
             animationSpec = tween(easing = EaseOut),
-        )
+        ) + fadeIn(tween(350))
     } else {
         scaleIn(
-            initialScale = 0.95f,
-            animationSpec = tween(250, easing = EaseOut)
-        ) + slideIntoContainer(
-            towards = direction,
-            animationSpec = tween(250, easing = EaseOut),
-            initialOffset = {
-                it / 16
-            }
-        )
-    } + fadeIn(tween(350, easing = EaseOut))
+            initialScale = 0.9f,
+            animationSpec = tween(350, easing = Ease)
+        ) + fadeIn(tween(350))
+    }
 }
 
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.getExitTransition(): ExitTransition {
@@ -60,19 +58,13 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.getExitTransition(
         slideOutOfContainer(
             towards = direction,
             animationSpec = tween(easing = EaseIn)
-        )
+        ) + fadeOut(tween(150))
     } else {
         scaleOut(
-            targetScale = 0.95f,
-            animationSpec = tween(250, easing = EaseIn)
-        ) + slideOutOfContainer(
-            towards = direction,
-            animationSpec = tween(250, easing = EaseIn),
-            targetOffset = {
-                it / 16
-            }
-        )
-    } + fadeOut(tween(100, easing = EaseIn))
+            targetScale = 0.9f,
+            animationSpec = tween(350, easing = EaseIn)
+        ) + fadeOut(tween(350))
+    }
 }
 
 fun NavGraphBuilder.customNavigationComposable(

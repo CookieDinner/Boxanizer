@@ -1,6 +1,6 @@
 package com.cookiedinner.boxanizer.main.models
 
-enum class FabActions {
+enum class SharedActions {
     SAVE_BOX,
-    SAVE_ITEM
+    SAVE_ITEM,
 }

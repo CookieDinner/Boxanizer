@@ -102,10 +102,12 @@ fun AppTheme(
     }
     val view = LocalView.current
     val statusBarColor = animateColor(colorScheme.background)
+    val navigationBarColor = animateColor(colorScheme.surface)
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = statusBarColor.toArgb()
+            window.statusBarColor = Color.Transparent.toArgb()//statusBarColor.toArgb()
+            window.navigationBarColor = navigationBarColor.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }

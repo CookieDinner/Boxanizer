@@ -31,4 +31,10 @@
     <string name="code_error_2">Code already exists</string>
     <string name="name_error_1">Name can\'t be empty</string>
     <string name="boxSaveError">Couldn\'t save the box</string>
+    <string name="add_item">Add item</string>
+    <string name="box_details">Box details</string>
+    <string name="add_box_picture">Add a box picture</string>
+    <string name="error">Error</string>
+    <string name="box_picture">Box picture</string>
+    <string name="back_screen">Return to previous screen</string>
 </resources>

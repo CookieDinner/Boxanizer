@@ -3,7 +3,7 @@ package com.cookiedinner.boxanizer.main.viewmodels
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cookiedinner.boxanizer.main.models.FabActions
+import com.cookiedinner.boxanizer.main.models.SharedActions
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -17,8 +17,8 @@ class MainViewModel : ViewModel() {
     private val _bottomBarVisible = MutableStateFlow(true)
     val bottomBarVisible = _bottomBarVisible.asStateFlow()
 
-    private val _fabActionListener = MutableSharedFlow<FabActions>(replay = 0)
-    val fabActionListener = _fabActionListener.asSharedFlow()
+    private val _sharedActionListener = MutableSharedFlow<SharedActions>(replay = 0)
+    val sharedActionListener = _sharedActionListener.asSharedFlow()
 
     val snackbarHostState = SnackbarHostState()
 
@@ -30,10 +30,9 @@ class MainViewModel : ViewModel() {
         _bottomBarVisible.value = visible
     }
 
-    fun sendFabAction(fabAction: FabActions) {
+    fun sendSharedAction(sharedAction: SharedActions) {
         viewModelScope.launch {
-            _fabVisible.value = false
-            _fabActionListener.emit(fabAction)
+            _sharedActionListener.emit(sharedAction)
         }
     }
 }

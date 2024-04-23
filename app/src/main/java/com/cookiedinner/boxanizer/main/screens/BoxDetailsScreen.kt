@@ -1,31 +1,52 @@
 package com.cookiedinner.boxanizer.main.screens
 
+import android.util.Log
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.BorderColor
 import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.outlined.BorderColor
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,7 +58,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PlatformImeOptions
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
@@ -52,15 +77,16 @@ import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
 import com.cookiedinner.boxanizer.main.components.CameraDialog
 import com.cookiedinner.boxanizer.main.components.CameraPhotoPhase
 import com.cookiedinner.boxanizer.main.components.CameraType
-import com.cookiedinner.boxanizer.main.viewmodels.BoxesViewModel
+import com.cookiedinner.boxanizer.main.viewmodels.BoxDetailsViewModel
 import com.cookiedinner.boxanizer.main.viewmodels.MainViewModel
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @Composable
 fun BoxDetailsScreen(
     boxId: Long,
     navigator: Navigator = koinInject(),
-    viewModel: BoxesViewModel = koinActivityViewModel(),
+    viewModel: BoxDetailsViewModel = koinViewModel(),
     mainViewModel: MainViewModel = koinActivityViewModel()
 ) {
     val currentBox = viewModel.currentBox.collectAsStateWithLifecycle()
@@ -69,21 +95,16 @@ fun BoxDetailsScreen(
     val codeError = viewModel.codeError.collectAsStateWithLifecycle()
     val nameError = viewModel.nameError.collectAsStateWithLifecycle()
 
-    var initialized by rememberSaveable {
-        mutableStateOf(false)
-    }
     LaunchedEffect(Unit) {
-        if (!initialized) {
-            viewModel.getBoxDetails(boxId)
-            initialized = true
-        }
+        viewModel.setSnackbarHost(mainViewModel.snackbarHostState)
+        viewModel.getBoxDetails(boxId)
     }
 
     LaunchedEffect(currentBox.value, originalBox.value, codeError.value, nameError.value) {
         mainViewModel.changeFabVisibility(currentBox.value != originalBox.value && codeError.value == 0 && !nameError.value)
     }
 
-    FlowObserver(mainViewModel.fabActionListener) {
+    FlowObserver(mainViewModel.sharedActionListener) {
         viewModel.saveBox {
             navigator.popBackStack()
         }
@@ -96,15 +117,15 @@ fun BoxDetailsScreen(
             viewModel.editCurrentBox(it)
         },
         codeError = codeError.value,
-        nameError = nameError.value
+        nameError = nameError.value,
     )
 }
 
 @Composable
 private fun BoxDetailsScreenContent(
-    box: Box,
+    box: Box?,
     items: List<Item>,
-    editBox: (Box) -> Unit,
+    editBox: (Box?) -> Unit,
     codeError: Int,
     nameError: Boolean
 ) {
@@ -125,7 +146,7 @@ private fun BoxDetailsScreenContent(
             { code ->
                 cameraDialogVisible = false
                 editBox(
-                    box.copy(
+                    box?.copy(
                         code = code
                     )
                 )
@@ -142,7 +163,7 @@ private fun BoxDetailsScreenContent(
                     CameraPhotoPhase.DONE -> {
                         if (byteArray != null) {
                             editBox(
-                                box.copy(
+                                box?.copy(
                                     image = byteArray
                                 )
                             )
@@ -158,12 +179,19 @@ private fun BoxDetailsScreenContent(
         } else null,
         overlay = if (cameraDialogType == CameraType.PHOTO) {
             {
-                Column(
-                    modifier = Modifier.height(180.dp),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    HorizontalDivider()
-                    HorizontalDivider()
+                Box {
+                    Column(
+                        modifier = Modifier.height(180.dp),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        HorizontalDivider()
+                        HorizontalDivider()
+                    }
+                    Column(
+                    ) {
+                        HorizontalDivider()
+                        HorizontalDivider()
+                    }
                 }
             }
         } else {
@@ -171,67 +199,168 @@ private fun BoxDetailsScreenContent(
         }
     )
 
-    Box(
-        contentAlignment = Alignment.Center
-    ) {
+    val focusManager = LocalFocusManager.current
+
+    Surface {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(12.dp)
+            modifier = Modifier
+                .imePadding()
+                .fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 12.dp,
+                end = 12.dp,
+                top = 12.dp,
+                bottom = 96.dp,
+            )
         ) {
             item {
+                var expanded by remember {
+                    mutableStateOf(false)
+                }
                 Surface(
                     modifier = Modifier
-                        .height(180.dp)
-                        .fillMaxWidth()
                         .clickable(!photoLoading) {
-                            cameraDialogType = CameraType.PHOTO
-                            cameraDialogVisible = true
+                            if (box?.image != null) {
+                                expanded = !expanded
+                            } else {
+                                cameraDialogType = CameraType.PHOTO
+                                cameraDialogVisible = true
+                            }
                         },
                     shape = MaterialTheme.shapes.extraSmall,
                     color = MaterialTheme.colorScheme.background,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                    AnimatedContent(
+                        targetState = when {
+                            photoLoading || box == null -> 0
+                            box.image == null -> 1
+                            else -> 2
+                        }
                     ) {
-                        when {
-                            photoLoading -> CircularProgressIndicator(Modifier.size(48.dp))
-                            box.image == null -> {
-                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Icon(imageVector = Icons.Default.AddAPhoto, contentDescription = "Add photo")
+                        when (it) {
+                            0 -> {
+                                Box(
+                                    modifier = Modifier
+                                        .height(180.dp)
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(Modifier.size(48.dp))
+                                }
+                            }
+
+                            1 -> {
+                                Box(
+                                    modifier = Modifier.size(80.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AddAPhoto,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        contentDescription = stringResource(R.string.add_box_picture)
+                                    )
                                 }
                             }
 
                             else -> {
-                                SubcomposeAsyncImage(
-                                    modifier = Modifier
-                                        .padding(4.dp)
-                                        .fillMaxSize()
-                                        .clip(MaterialTheme.shapes.extraSmall),
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(box.image)
-                                        .crossfade(true)
-                                        .size(Size.ORIGINAL)
-                                        .build(),
-                                    contentScale = ContentScale.FillWidth,
-                                    error = {
-                                        Icon(
-                                            imageVector = Icons.Filled.ImageNotSupported,
-                                            tint = Color.LightGray,
-                                            contentDescription = "Error"
-                                        )
-                                    },
-                                    loading = {
-                                        Box(
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            CircularProgressIndicator(Modifier.size(48.dp))
+                                AnimatedContent(
+                                    targetState = expanded,
+                                    transitionSpec = {
+                                        if (targetState) {
+                                            (fadeIn(animationSpec = tween(220, 90)) +
+                                                    scaleIn(initialScale = 0.92f, animationSpec = tween(220, 90)) +
+                                                    slideInVertically(tween(220, 90)) { -it / 2 })
+                                                .togetherWith(fadeOut(animationSpec = tween(90)))
+                                        } else {
+                                            (fadeIn(animationSpec = tween(220, 90)) +
+                                                    scaleIn(initialScale = 0.92f, animationSpec = tween(220, 90)) +
+                                                    slideInVertically(tween(220, 90)) { it / 2 })
+                                                .togetherWith(fadeOut(animationSpec = tween(90)))
                                         }
-                                    },
-                                    contentDescription = ""
-                                )
+                                    }
+                                ) {
+                                    Box(contentAlignment = Alignment.CenterEnd) {
+                                        SubcomposeAsyncImage(
+                                            modifier = Modifier
+                                                .padding(4.dp)
+                                                .then(if (it) Modifier else Modifier.height(180.dp))
+                                                .fillMaxWidth()
+                                                .clip(MaterialTheme.shapes.extraSmall),
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(box?.image)
+                                                .crossfade(true)
+                                                .size(Size.ORIGINAL)
+                                                .build(),
+                                            contentScale = ContentScale.FillWidth,
+                                            error = {
+                                                Box(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        modifier = Modifier.size(48.dp),
+                                                        imageVector = Icons.Filled.ImageNotSupported,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        contentDescription = stringResource(R.string.error)
+                                                    )
+                                                }
+                                            },
+                                            loading = {
+                                                Box(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    CircularProgressIndicator(Modifier.size(48.dp))
+                                                }
+                                            },
+                                            contentDescription = stringResource(R.string.box_picture)
+                                        )
+                                        Column(
+                                            modifier = Modifier.matchParentSize(),
+                                            verticalArrangement = Arrangement.SpaceBetween,
+                                            horizontalAlignment = Alignment.End
+                                        ){
+                                            OutlinedIconButton(
+                                                modifier = Modifier.padding(4.dp),
+                                                onClick = {
+                                                    editBox(
+                                                        box?.copy(
+                                                            image = null
+                                                        )
+                                                    )
+                                                },
+                                                colors = IconButtonDefaults.filledIconButtonColors(
+                                                    containerColor = MaterialTheme.colorScheme.background,
+                                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                ),
+                                                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Outlined.Delete,
+                                                    contentDescription = ""
+                                                )
+                                            }
+                                            OutlinedIconButton(
+                                                modifier = Modifier.padding(4.dp),
+                                                onClick = {
+                                                    cameraDialogType = CameraType.PHOTO
+                                                    cameraDialogVisible = true
+                                                },
+                                                colors = IconButtonDefaults.filledIconButtonColors(
+                                                    containerColor = MaterialTheme.colorScheme.background,
+                                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                ),
+                                                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Outlined.BorderColor,
+                                                    contentDescription = ""
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -240,7 +369,7 @@ private fun BoxDetailsScreenContent(
             item {
                 OutlinedTextField(
                     modifier = Modifier.padding(top = 8.dp),
-                    value = box.code,
+                    value = box?.code ?: "",
                     label = {
                         Text(text = stringResource(id = R.string.code))
                     },
@@ -258,7 +387,7 @@ private fun BoxDetailsScreenContent(
                     },
                     onValueChange = {
                         editBox(
-                            box.copy(
+                            box?.copy(
                                 code = it
                             )
                         )
@@ -275,13 +404,19 @@ private fun BoxDetailsScreenContent(
                                 contentDescription = stringResource(R.string.scanner)
                             )
                         }
-                    }
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() }
+                    )
                 )
             }
             item {
                 OutlinedTextField(
                     modifier = Modifier.padding(top = 8.dp),
-                    value = box.name,
+                    value = box?.name ?: "",
                     label = {
                         Text(text = stringResource(R.string.name))
                     },
@@ -291,23 +426,29 @@ private fun BoxDetailsScreenContent(
                     } else null,
                     onValueChange = {
                         editBox(
-                            box.copy(
+                            box?.copy(
                                 name = it
                             )
                         )
-                    }
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() }
+                    )
                 )
             }
             item {
                 OutlinedTextField(
                     modifier = Modifier.padding(top = 8.dp),
-                    value = box.description ?: "",
+                    value = box?.description ?: "",
                     label = {
                         Text(text = stringResource(R.string.description))
                     },
                     onValueChange = {
                         editBox(
-                            box.copy(
+                            box?.copy(
                                 description = it
                             )
                         )

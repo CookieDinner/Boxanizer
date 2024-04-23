@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
 import com.cookiedinner.boxanizer.core.data.DataStoreManager
 import com.cookiedinner.boxanizer.core.navigation.AppNavigationScreen
 import com.cookiedinner.boxanizer.core.theme.AppTheme
@@ -18,6 +19,7 @@ class MainActivity : ComponentActivity() {
     private val dataStoreManager: DataStoreManager by inject()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             val theme = dataStoreManager.collectThemeWithLifecycle()
             val dynamicTheme = dataStoreManager.collectDynamicThemeWithLifecycle()

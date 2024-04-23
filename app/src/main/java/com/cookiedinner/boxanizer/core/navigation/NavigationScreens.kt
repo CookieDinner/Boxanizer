@@ -4,7 +4,8 @@ enum class NavigationScreens(val route: String, val isMainScreen: Boolean) {
     BoxesScreen("boxes", true),
     ItemsScreen("items", true),
     SettingsScreen("settings", true),
-    BoxDetailsScreen("box_details", false);
+    BoxDetailsScreen("box_details", false),
+    AddBoxScreen("add_box", false);
 
     companion object {
         fun fromRoute(route: String?): NavigationScreens = when (route?.split("/", "?")?.first()) {
@@ -12,6 +13,7 @@ enum class NavigationScreens(val route: String, val isMainScreen: Boolean) {
             ItemsScreen.route -> ItemsScreen
             SettingsScreen.route -> SettingsScreen
             BoxDetailsScreen.route -> BoxDetailsScreen
+            AddBoxScreen.route -> AddBoxScreen
             null -> BoxesScreen
             else -> throw IllegalArgumentException("Wrong navigation route: $route")
         }

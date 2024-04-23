@@ -31,4 +31,10 @@
     <string name="code_error_2">Podany kod już istnieje</string>
     <string name="name_error_1">Nazwa nie może być pusta</string>
     <string name="boxSaveError">Nie udało się zapisać pudełka</string>
+    <string name="add_item">Dodaj przedmiot</string>
+    <string name="box_details">Detale pudełka</string>
+    <string name="add_box_picture">Dodaj zdjęcie pudełka</string>
+    <string name="error">Błąd</string>
+    <string name="box_picture">Zdjęcie pudełka</string>
+    <string name="back_screen">Powrót to poprzedniego ekranu</string>
 </resources>

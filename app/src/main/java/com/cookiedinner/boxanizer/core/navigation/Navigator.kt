@@ -15,9 +15,7 @@ class Navigator {
             throw RuntimeException("Route $route is not one of the main navigation screens!")
 
         navController?.navigate(route) {
-            popUpTo(NavigationScreens.BoxesScreen.route) {
-                inclusive = route == NavigationScreens.BoxesScreen.route
-            }
+            popUpTo(NavigationScreens.BoxesScreen.route)
             launchSingleTop = true
         }
     }

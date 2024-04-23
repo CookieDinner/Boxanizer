@@ -44,5 +44,8 @@ fun AppNavigationGraph(
             val boxId = it.arguments?.getLong("box_id") ?: -1L
             BoxDetailsScreen(boxId = boxId)
         }
+        customNavigationComposable(NavigationScreens.AddBoxScreen.route) {
+            BoxDetailsScreen(boxId = -1L)
+        }
     }
 }

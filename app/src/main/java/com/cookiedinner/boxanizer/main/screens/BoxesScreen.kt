@@ -1,5 +1,7 @@
 package com.cookiedinner.boxanizer.main.screens
 
+import android.util.Log
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -24,14 +27,21 @@ import com.cookiedinner.boxanizer.core.navigation.Navigator
 import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
 import com.cookiedinner.boxanizer.main.components.BoxComponent
 import com.cookiedinner.boxanizer.main.viewmodels.BoxesViewModel
+import com.cookiedinner.boxanizer.main.viewmodels.MainViewModel
 import org.koin.compose.koinInject
 
 @Composable
 fun BoxesScreen(
     navigator: Navigator = koinInject(),
     viewModel: BoxesViewModel = koinActivityViewModel(),
+    mainViewModel: MainViewModel = koinActivityViewModel()
 ) {
     val boxes = viewModel.boxes.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.setSnackbarHost(mainViewModel.snackbarHostState)
+        viewModel.getBoxes()
+    }
     BoxesScreenContent(
         boxes = boxes.value,
         query = viewModel.currentQuery.value,
@@ -47,41 +57,49 @@ private fun BoxesScreenContent(
     query: String,
     onBoxClick: (Long) -> Unit
 ) {
-    when {
-        boxes == null -> {
-            ListSkeleton()
-        }
-
-        boxes.isEmpty() -> {
-            Box(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = if (query.isEmpty())
-                        stringResource(R.string.empty_boxes)
-                    else
-                        stringResource(R.string.empty_boxes_query),
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center
-                )
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        when {
+            boxes == null -> {
+                ListSkeleton()
             }
-        }
 
-        else -> {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(12.dp)
-            ) {
-                items(boxes) {
-                    BoxComponent(
-                        box = it,
-                        onClick = {
-                            onBoxClick(it.id)
-                        }
+            boxes.isEmpty() -> {
+                Box(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (query.isEmpty())
+                            stringResource(R.string.empty_boxes)
+                        else
+                            stringResource(R.string.empty_boxes_query),
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center
                     )
+                }
+            }
+
+            else -> {
+                LazyColumn(
+                    contentPadding = PaddingValues(
+                        start = 12.dp,
+                        end = 12.dp,
+                        top = 12.dp,
+                        bottom = 96.dp,
+                    ),
+                ) {
+                    items(boxes) {
+                        BoxComponent(
+                            box = it,
+                            onClick = {
+                                onBoxClick(it.id)
+                            }
+                        )
+                    }
                 }
             }
         }
