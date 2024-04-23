@@ -24,17 +24,11 @@ import kotlinx.coroutines.withContext
 class BoxesViewModel(
     private val context: Application,
     private val dataProvider: DataProvider
-) : ViewModel() {
+) : ViewModelWithSnack() {
     private val _boxes = MutableStateFlow<SnapshotStateList<Box>?>(null)
     val boxes = _boxes.asStateFlow()
 
     val currentQuery = mutableStateOf("")
-
-    private lateinit var snackbarHostState: SnackbarHostState
-
-    fun setSnackbarHost(snackbarHostState: SnackbarHostState) {
-        this.snackbarHostState = snackbarHostState
-    }
 
     fun getBoxes(query: String = "") {
         viewModelScope.launch(Dispatchers.IO) {

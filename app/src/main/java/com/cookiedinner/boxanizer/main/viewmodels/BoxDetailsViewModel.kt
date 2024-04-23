@@ -20,7 +20,7 @@ import kotlinx.coroutines.withContext
 class BoxDetailsViewModel(
     private val context: Application,
     private val dataProvider: DataProvider
-) : ViewModel() {
+) : ViewModelWithSnack() {
     private val _currentBox = MutableStateFlow<Box?>(null)
     val currentBox = _currentBox.asStateFlow()
 
@@ -33,12 +33,7 @@ class BoxDetailsViewModel(
     private val _originalCurrentBox = MutableStateFlow<Box?>(null)
     val originalCurrentBox = _originalCurrentBox.asStateFlow()
 
-    private lateinit var snackbarHostState: SnackbarHostState
     private var initialized = false
-
-    fun setSnackbarHost(snackbarHostState: SnackbarHostState) {
-        this.snackbarHostState = snackbarHostState
-    }
 
     fun getBoxDetails(boxId: Long) {
         if (!initialized) {
