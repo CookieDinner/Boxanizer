@@ -1,14 +1,13 @@
-package com.cookiedinner.boxanizer.main.viewmodels
+package com.cookiedinner.boxanizer.boxes.viewmodels
 
 import android.app.Application
-import androidx.compose.material3.SnackbarHostState
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cookiedinner.boxanizer.Box
 import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.data.DataProvider
 import com.cookiedinner.boxanizer.core.models.emptyBox
 import com.cookiedinner.boxanizer.core.utilities.safelyShowSnackbar
+import com.cookiedinner.boxanizer.core.viewmodels.ViewModelWithSnack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow

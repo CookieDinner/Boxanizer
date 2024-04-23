@@ -1,4 +1,4 @@
-package com.cookiedinner.boxanizer.main.screens
+package com.cookiedinner.boxanizer.settings.screens
 
 import android.os.Build
 import androidx.compose.foundation.layout.Box
@@ -25,9 +25,9 @@ import androidx.compose.ui.unit.dp
 import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.data.DataStoreManager
 import com.cookiedinner.boxanizer.core.utilities.getPackageInfo
-import com.cookiedinner.boxanizer.main.components.preferences.PreferenceGroup
-import com.cookiedinner.boxanizer.main.components.preferences.SwitchPreference
-import com.cookiedinner.boxanizer.main.components.preferences.TextPreference
+import com.cookiedinner.boxanizer.settings.components.PreferenceGroup
+import com.cookiedinner.boxanizer.settings.components.SwitchPreference
+import com.cookiedinner.boxanizer.settings.components.TextPreference
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 

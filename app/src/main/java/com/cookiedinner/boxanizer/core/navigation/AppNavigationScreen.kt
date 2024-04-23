@@ -14,7 +14,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Widgets
@@ -46,10 +45,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.models.BottomNavItem
+import com.cookiedinner.boxanizer.core.models.SharedActions
 import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
-import com.cookiedinner.boxanizer.main.models.SharedActions
-import com.cookiedinner.boxanizer.main.viewmodels.BoxesViewModel
-import com.cookiedinner.boxanizer.main.viewmodels.MainViewModel
+import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
 import org.koin.compose.koinInject
 
 @Composable
@@ -123,11 +121,11 @@ private fun AppNavigationScreenContent(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = snackbar,
         topBar = {
-            if(!navigationScreen.isMainScreen) {
+            if (!navigationScreen.isMainScreen) {
                 TopAppBar(
                     title = {
                         Text(
-                            text = when(navigationScreen) {
+                            text = when (navigationScreen) {
                                 NavigationScreens.BoxDetailsScreen -> stringResource(R.string.box_details)
                                 NavigationScreens.AddBoxScreen -> stringResource(R.string.add_box)
                                 else -> ""
@@ -207,7 +205,7 @@ private fun AppNavigationScreenContent(
 
         },
         bottomBar = {
-            if(bottomBarVisible && navigationScreen.isMainScreen){
+            if (bottomBarVisible && navigationScreen.isMainScreen) {
                 Surface(shadowElevation = 12.dp) {
                     BottomAppBar {
                         bottomNavItems.forEach {

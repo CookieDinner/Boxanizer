@@ -1,4 +1,4 @@
-package com.cookiedinner.boxanizer.main.components
+package com.cookiedinner.boxanizer.core.components
 
 import android.Manifest
 import android.content.res.Configuration

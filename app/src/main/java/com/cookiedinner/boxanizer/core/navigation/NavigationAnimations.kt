@@ -7,9 +7,6 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Ease
 import androidx.compose.animation.core.EaseIn
 import androidx.compose.animation.core.EaseOut
-import androidx.compose.animation.core.EaseOutBack
-import androidx.compose.animation.core.EaseOutBounce
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -37,6 +34,7 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.getDirection(): An
             AnimatedContentTransitionScope.SlideDirection.Up
     }
 }
+
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.getEnterTransition(): EnterTransition {
     val direction = getDirection()
     return if (direction in listOf(AnimatedContentTransitionScope.SlideDirection.Left, AnimatedContentTransitionScope.SlideDirection.Right)) {

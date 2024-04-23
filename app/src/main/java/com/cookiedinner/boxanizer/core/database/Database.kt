@@ -2,6 +2,7 @@ package com.cookiedinner.boxanizer.core.database
 
 import com.cookiedinner.boxanizer.Box
 import com.cookiedinner.boxanizer.BoxanizerDb
+import com.cookiedinner.boxanizer.Item
 
 class Database(databaseDriverFactory: DatabaseDriverFactory) {
     private val database = BoxanizerDb(
@@ -45,5 +46,13 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
             insertedBox = boxQueries.selectLastBox().executeAsOneOrNull()
         }
         return insertedBox
+    }
+
+    fun itemsSelectAll(): List<Item> {
+        return itemQueries.selectAll().executeAsList()
+    }
+
+    fun itemSelectById(id: Long): Item? {
+        return itemQueries.selectById(id).executeAsOneOrNull()
     }
 }

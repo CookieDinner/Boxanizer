@@ -1,9 +1,9 @@
-package com.cookiedinner.boxanizer.main.viewmodels
+package com.cookiedinner.boxanizer.core.viewmodels
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cookiedinner.boxanizer.main.models.SharedActions
+import com.cookiedinner.boxanizer.core.models.SharedActions
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow

@@ -1,4 +1,4 @@
-package com.cookiedinner.boxanizer.main.models
+package com.cookiedinner.boxanizer.core.models
 
 enum class SharedActions {
     SAVE_BOX,

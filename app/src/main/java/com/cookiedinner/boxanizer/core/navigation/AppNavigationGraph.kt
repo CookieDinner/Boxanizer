@@ -4,12 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.cookiedinner.boxanizer.main.screens.BoxDetailsScreen
-import com.cookiedinner.boxanizer.main.screens.BoxesScreen
-import com.cookiedinner.boxanizer.main.screens.ItemsScreen
-import com.cookiedinner.boxanizer.main.screens.SettingsScreen
+import com.cookiedinner.boxanizer.boxes.screens.BoxDetailsScreen
+import com.cookiedinner.boxanizer.boxes.screens.BoxesScreen
+import com.cookiedinner.boxanizer.items.screens.ItemsScreen
+import com.cookiedinner.boxanizer.settings.screens.SettingsScreen
 import org.koin.compose.koinInject
 
 @Composable

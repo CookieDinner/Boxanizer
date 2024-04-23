@@ -37,4 +37,5 @@
     <string name="error">Error</string>
     <string name="box_picture">Box picture</string>
     <string name="back_screen">Return to previous screen</string>
+    <string name="itemsError">Failed to fetch items</string>
 </resources>

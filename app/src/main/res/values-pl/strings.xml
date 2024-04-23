@@ -37,4 +37,5 @@
     <string name="error">Błąd</string>
     <string name="box_picture">Zdjęcie pudełka</string>
     <string name="back_screen">Powrót to poprzedniego ekranu</string>
+    <string name="itemsError">Błąd pobierania przedmiotów</string>
 </resources>

@@ -1,7 +1,5 @@
-package com.cookiedinner.boxanizer.main.screens
+package com.cookiedinner.boxanizer.boxes.screens
 
-import android.util.Log
-import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,13 +19,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cookiedinner.boxanizer.Box
 import com.cookiedinner.boxanizer.R
+import com.cookiedinner.boxanizer.boxes.components.BoxComponent
+import com.cookiedinner.boxanizer.boxes.viewmodels.BoxesViewModel
 import com.cookiedinner.boxanizer.core.components.ListSkeleton
 import com.cookiedinner.boxanizer.core.navigation.NavigationScreens
 import com.cookiedinner.boxanizer.core.navigation.Navigator
 import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
-import com.cookiedinner.boxanizer.main.components.BoxComponent
-import com.cookiedinner.boxanizer.main.viewmodels.BoxesViewModel
-import com.cookiedinner.boxanizer.main.viewmodels.MainViewModel
+import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
 import org.koin.compose.koinInject
 
 @Composable

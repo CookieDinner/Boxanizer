@@ -1,6 +1,9 @@
 package com.cookiedinner.boxanizer.core.navigation
 
-enum class NavigationScreens(val route: String, val isMainScreen: Boolean) {
+enum class NavigationScreens(
+    val route: String,
+    val isMainScreen: Boolean
+) {
     BoxesScreen("boxes", true),
     ItemsScreen("items", true),
     SettingsScreen("settings", true),

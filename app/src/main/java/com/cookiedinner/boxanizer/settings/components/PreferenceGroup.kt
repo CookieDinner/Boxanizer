@@ -1,4 +1,4 @@
-package com.cookiedinner.boxanizer.main.components.preferences
+package com.cookiedinner.boxanizer.settings.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope

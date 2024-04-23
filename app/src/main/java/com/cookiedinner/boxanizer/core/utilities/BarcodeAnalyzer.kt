@@ -6,7 +6,6 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.ZoomSuggestionOptions
 import com.google.mlkit.vision.common.InputImage
 
 class BarcodeAnalyzer(
@@ -30,7 +29,7 @@ class BarcodeAnalyzer(
                         }
                     }
                 }
-                .addOnFailureListener {  }
+                .addOnFailureListener { }
                 .addOnCompleteListener {
                     imageProxy.close()
                     image.mediaImage?.close()
