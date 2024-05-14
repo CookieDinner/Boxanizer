@@ -1,4 +1,0 @@
-CREATE TABLE BoxItem (
-    boxId INTEGER NOT NULL,
-    itemId INTEGER NOT NULL
-);

@@ -8,7 +8,9 @@ enum class NavigationScreens(
     ItemsScreen("items", true),
     SettingsScreen("settings", true),
     BoxDetailsScreen("box_details", false),
-    AddBoxScreen("add_box", false);
+    AddBoxScreen("add_box", false),
+    ItemDetailsScreen("item_details", false),
+    AddItemScreen("add_item", false);
 
     companion object {
         fun fromRoute(route: String?): NavigationScreens = when (route?.split("/", "?")?.first()) {
@@ -17,6 +19,8 @@ enum class NavigationScreens(
             SettingsScreen.route -> SettingsScreen
             BoxDetailsScreen.route -> BoxDetailsScreen
             AddBoxScreen.route -> AddBoxScreen
+            ItemDetailsScreen.route -> ItemDetailsScreen
+            AddItemScreen.route -> AddItemScreen
             null -> BoxesScreen
             else -> throw IllegalArgumentException("Wrong navigation route: $route")
         }

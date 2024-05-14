@@ -8,4 +8,4 @@ selectByItemId:
 SELECT * FROM ItemTag WHERE itemId = :itemId;
 
 selectByName:
-SELECT * FROM ItemTag WHERE name = :namel;
+SELECT * FROM ItemTag WHERE name = :name;

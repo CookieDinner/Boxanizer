@@ -58,8 +58,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
-import com.cookiedinner.boxanizer.Box
-import com.cookiedinner.boxanizer.Item
 import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.boxes.viewmodels.BoxDetailsViewModel
 import com.cookiedinner.boxanizer.core.components.CameraDialog
@@ -69,6 +67,8 @@ import com.cookiedinner.boxanizer.core.navigation.Navigator
 import com.cookiedinner.boxanizer.core.utilities.FlowObserver
 import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
 import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
+import com.cookiedinner.boxanizer.database.Box
+import com.cookiedinner.boxanizer.database.Item
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 

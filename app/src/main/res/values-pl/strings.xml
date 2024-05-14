@@ -38,4 +38,5 @@
     <string name="box_picture">Zdjęcie pudełka</string>
     <string name="back_screen">Powrót to poprzedniego ekranu</string>
     <string name="itemsError">Błąd pobierania przedmiotów</string>
+    <string name="empty_items">Nie masz jeszcze żadnych przedmiotów.\nAby dodać jedno kliknij przycisk \"+\" w prawym dolnym rogu ekranu</string>
 </resources>

@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.cookiedinner.boxanizer.core.data.DataStoreManager
 import org.koin.compose.koinInject
@@ -65,10 +66,7 @@ fun BasicSkeleton(
 
 @Composable
 fun ListSkeleton(
-    itemModifier: Modifier = Modifier
-        .padding(vertical = 4.dp)
-        .fillMaxWidth()
-        .height(96.dp),
+    itemHeight: Dp = 96.dp,
     itemShape: Shape = MaterialTheme.shapes.medium
 ) {
     LazyColumn(
@@ -77,7 +75,10 @@ fun ListSkeleton(
     ) {
         items(10) {
             BasicSkeleton(
-                modifier = itemModifier,
+                modifier = Modifier
+                    .padding(vertical = 4.dp)
+                    .fillMaxWidth()
+                    .height(itemHeight),
                 shape = itemShape
             )
         }

@@ -1,14 +1,13 @@
 package com.cookiedinner.boxanizer.items.viewmodels
 
 import android.app.Application
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.viewModelScope
-import com.cookiedinner.boxanizer.Item
 import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.data.DataProvider
 import com.cookiedinner.boxanizer.core.utilities.safelyShowSnackbar
 import com.cookiedinner.boxanizer.core.viewmodels.ViewModelWithSnack
+import com.cookiedinner.boxanizer.database.Item
+import com.cookiedinner.boxanizer.items.models.ItemListType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +18,7 @@ class ItemsViewModel(
     private val context: Application,
     private val dataProvider: DataProvider
 ) : ViewModelWithSnack() {
-    private val _items = MutableStateFlow<SnapshotStateList<Item>?>(null)
+    private val _items = MutableStateFlow<Map<ItemListType, List<Item>>?>(null)
     val items = _items.asStateFlow()
 
     fun getItems() {
@@ -27,7 +26,7 @@ class ItemsViewModel(
             try {
                 val items = dataProvider.getItems()
                 withContext(Dispatchers.Main) {
-                    _items.value = items.toMutableStateList()
+                    _items.value = items
                 }
             } catch (ex: Exception) {
                 ex.printStackTrace()

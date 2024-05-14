@@ -1,0 +1,23 @@
+CREATE TABLE Item (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    image BLOB
+);
+
+CREATE INDEX item_name ON Item(name);
+
+selectAll:
+SELECT * FROM Item;
+
+selectById:
+SELECT * FROM Item WHERE id = :itemId;
+
+selectInBoxes:
+SELECT Item.* FROM Item
+INNER JOIN BoxItem ON Item.id = BoxItem.itemId;
+
+selectNotInBoxes:
+SELECT Item.* FROM Item
+LEFT JOIN BoxItem ON Item.id = BoxItem.itemId
+WHERE BoxItem.itemId IS NULL;

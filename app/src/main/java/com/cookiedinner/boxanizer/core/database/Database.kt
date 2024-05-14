@@ -1,8 +1,8 @@
 package com.cookiedinner.boxanizer.core.database
 
-import com.cookiedinner.boxanizer.Box
-import com.cookiedinner.boxanizer.BoxanizerDb
-import com.cookiedinner.boxanizer.Item
+import com.cookiedinner.boxanizer.database.Box
+import com.cookiedinner.boxanizer.database.BoxanizerDb
+import com.cookiedinner.boxanizer.database.Item
 
 class Database(databaseDriverFactory: DatabaseDriverFactory) {
     private val database = BoxanizerDb(
@@ -50,6 +50,18 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
 
     fun itemsSelectAll(): List<Item> {
         return itemQueries.selectAll().executeAsList()
+    }
+
+    fun itemsSelectRemovedFromBoxes(): List<Item> {
+        return emptyList()
+    }
+
+    fun itemsSelectInBoxes(): List<Item> {
+        return emptyList()
+    }
+
+    fun itemsSelectNotInBoxes(): List<Item> {
+        return emptyList()
     }
 
     fun itemSelectById(id: Long): Item? {

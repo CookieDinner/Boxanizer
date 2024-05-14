@@ -17,7 +17,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.cookiedinner.boxanizer.Box
 import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.boxes.components.BoxComponent
 import com.cookiedinner.boxanizer.boxes.viewmodels.BoxesViewModel
@@ -26,6 +25,7 @@ import com.cookiedinner.boxanizer.core.navigation.NavigationScreens
 import com.cookiedinner.boxanizer.core.navigation.Navigator
 import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
 import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
+import com.cookiedinner.boxanizer.database.Box
 import org.koin.compose.koinInject
 
 @Composable
@@ -45,6 +45,9 @@ fun BoxesScreen(
         query = viewModel.currentQuery.value,
         onBoxClick = {
             navigator.navigateToScreen("${NavigationScreens.BoxDetailsScreen.route}?boxId=$it")
+        },
+        onBoxDelete = {
+            viewModel.deleteBox(it)
         }
     )
 }
@@ -53,7 +56,8 @@ fun BoxesScreen(
 private fun BoxesScreenContent(
     boxes: List<Box>?,
     query: String,
-    onBoxClick: (Long) -> Unit
+    onBoxClick: (Long) -> Unit,
+    onBoxDelete: (Long) -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -90,11 +94,19 @@ private fun BoxesScreenContent(
                         bottom = 96.dp,
                     ),
                 ) {
-                    items(boxes) {
+                    items(
+                        items = boxes,
+                        key = {
+                            it.id
+                        }
+                    ) {
                         BoxComponent(
                             box = it,
                             onClick = {
                                 onBoxClick(it.id)
+                            },
+                            onDelete = {
+                                onBoxDelete(it.id)
                             }
                         )
                     }

@@ -1,9 +1,10 @@
 package com.cookiedinner.boxanizer.core.data
 
-import com.cookiedinner.boxanizer.Box
-import com.cookiedinner.boxanizer.Item
 import com.cookiedinner.boxanizer.core.database.Database
 import com.cookiedinner.boxanizer.core.database.DatabaseDriverFactory
+import com.cookiedinner.boxanizer.database.Box
+import com.cookiedinner.boxanizer.database.Item
+import com.cookiedinner.boxanizer.items.models.ItemListType
 
 class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
     private val database = Database(databaseDriverFactory)
@@ -32,7 +33,11 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
     }
 
     @Throws(Exception::class)
-    fun getItems(): List<Item> {
-        return database.itemsSelectAll()
+    fun getItems(): Map<ItemListType, List<Item>> {
+        return mapOf(
+            ItemListType.REMOVED to database.itemsSelectRemovedFromBoxes(),
+            ItemListType.IN_BOXES to database.itemsSelectInBoxes(),
+            ItemListType.REMAINING to database.itemsSelectNotInBoxes()
+        )
     }
 }

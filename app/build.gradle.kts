@@ -23,7 +23,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("debug")
         }
@@ -51,7 +51,7 @@ android {
 sqldelight {
     databases {
         create("BoxanizerDb") {
-            packageName.set("com.cookiedinner.boxanizer")
+            packageName.set("com.cookiedinner.boxanizer.database")
         }
     }
 }
