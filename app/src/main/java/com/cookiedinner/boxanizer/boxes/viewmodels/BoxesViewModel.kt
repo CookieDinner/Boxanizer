@@ -33,7 +33,7 @@ class BoxesViewModel(
                 }
             } catch (ex: Exception) {
                 ex.printStackTrace()
-                snackbarHostState.safelyShowSnackbar(context.getString(R.string.boxesError))
+                snackbarHostState.safelyShowSnackbar(context.getString(R.string.boxes_error))
             }
         }
     }
@@ -41,12 +41,13 @@ class BoxesViewModel(
     fun deleteBox(boxId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                dataProvider.deleteBox(boxId)
                 _boxes.update { boxes ->
                     boxes?.filterNot { it.id == boxId }
                 }
             } catch (ex: Exception) {
                 ex.printStackTrace()
-                snackbarHostState.safelyShowSnackbar("Failed to delete the box")
+                snackbarHostState.safelyShowSnackbar(context.getString(R.string.box_delete_error))
             }
         }
     }

@@ -11,6 +11,7 @@ import com.cookiedinner.boxanizer.items.models.ItemListType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -30,7 +31,23 @@ class ItemsViewModel(
                 }
             } catch (ex: Exception) {
                 ex.printStackTrace()
-                snackbarHostState.safelyShowSnackbar(context.getString(R.string.itemsError))
+                snackbarHostState.safelyShowSnackbar(context.getString(R.string.items_error))
+            }
+        }
+    }
+
+    fun deleteItem(itemId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                dataProvider.deleteItem(itemId)
+                _items.update { items ->
+                    items?.mapValues {
+                        it.value.filterNot { it.id == itemId }
+                    }
+                }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                snackbarHostState.safelyShowSnackbar(context.getString(R.string.item_delete_error))
             }
         }
     }

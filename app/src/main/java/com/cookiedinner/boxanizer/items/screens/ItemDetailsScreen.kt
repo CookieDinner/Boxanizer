@@ -1,4 +1,4 @@
-package com.cookiedinner.boxanizer.boxes.screens
+package com.cookiedinner.boxanizer.items.screens
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -25,13 +25,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.ImageNotSupported
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.outlined.BorderColor
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
@@ -59,8 +57,6 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
 import com.cookiedinner.boxanizer.R
-import com.cookiedinner.boxanizer.core.models.InputErrorType
-import com.cookiedinner.boxanizer.boxes.viewmodels.BoxDetailsViewModel
 import com.cookiedinner.boxanizer.core.components.CameraDialog
 import com.cookiedinner.boxanizer.core.components.CameraImage
 import com.cookiedinner.boxanizer.core.components.CameraPhotoPhase
@@ -72,63 +68,58 @@ import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
 import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
 import com.cookiedinner.boxanizer.database.Box
 import com.cookiedinner.boxanizer.database.Item
+import com.cookiedinner.boxanizer.items.viewmodels.ItemDetailsViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @Composable
-fun BoxDetailsScreen(
-    boxId: Long,
+fun ItemDetailsScreen(
+    itemId: Long,
     navigator: Navigator = koinInject(),
-    viewModel: BoxDetailsViewModel = koinViewModel(),
+    viewModel: ItemDetailsViewModel = koinViewModel(),
     mainViewModel: MainViewModel = koinActivityViewModel()
 ) {
-    val currentBox = viewModel.currentBox.collectAsStateWithLifecycle()
-    val originalBox = viewModel.originalCurrentBox.collectAsStateWithLifecycle()
+    val currentItem = viewModel.currentItem.collectAsStateWithLifecycle()
+    val originalItem = viewModel.originalCurrentItem.collectAsStateWithLifecycle()
 
-    val codeError = viewModel.codeError.collectAsStateWithLifecycle()
     val nameError = viewModel.nameError.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.setSnackbarHost(mainViewModel.snackbarHostState)
-        viewModel.getBoxDetails(boxId)
+        viewModel.getItemDetails(itemId)
     }
 
-    LaunchedEffect(currentBox.value, originalBox.value, codeError.value, nameError.value) {
-        mainViewModel.changeFabVisibility(currentBox.value != originalBox.value && codeError.value == InputErrorType.NONE && !nameError.value)
+    LaunchedEffect(currentItem.value, originalItem.value, nameError.value) {
+        mainViewModel.changeFabVisibility(currentItem.value != originalItem.value && !nameError.value)
     }
 
     FlowObserver(mainViewModel.sharedActionListener) {
-        if (it == SharedActions.SAVE_BOX) {
-            viewModel.saveBox {
+        if (it == SharedActions.SAVE_ITEM) {
+            viewModel.saveItem {
                 navigator.popBackStack()
             }
         }
     }
 
-    BoxDetailsScreenContent(
-        box = currentBox.value,
-        items = listOf(), //TODO: items
-        editBox = {
-            viewModel.editCurrentBox(it)
+    ItemDetailsScreenContent(
+        item = currentItem.value,
+        boxes = listOf(), //TODO: boxes
+        editItem = {
+            viewModel.editCurrentItem(it)
         },
-        codeError = codeError.value,
-        nameError = nameError.value,
+        nameError = nameError.value
     )
 }
 
 @Composable
-private fun BoxDetailsScreenContent(
-    box: Box?,
-    items: List<Item>,
-    editBox: (Box?) -> Unit,
-    codeError: InputErrorType,
+private fun ItemDetailsScreenContent(
+    item: Item?,
+    boxes: List<Box>,
+    editItem: (Item?) -> Unit,
     nameError: Boolean
 ) {
     var cameraDialogVisible by rememberSaveable {
         mutableStateOf(false)
-    }
-    var cameraDialogType by rememberSaveable {
-        mutableStateOf(CameraType.SCANNER)
     }
     var photoLoading by remember {
         mutableStateOf(false)
@@ -137,55 +128,39 @@ private fun BoxDetailsScreenContent(
     CameraDialog(
         visible = cameraDialogVisible,
         onDismissRequest = { cameraDialogVisible = false },
-        onScanned = if (cameraDialogType == CameraType.SCANNER) {
-            { code ->
-                cameraDialogVisible = false
-                editBox(
-                    box?.copy(
-                        code = code
-                    )
-                )
-            }
-        } else null,
-        takePhoto = if (cameraDialogType == CameraType.PHOTO) {
-            { phase, byteArray ->
-                when (phase) {
-                    CameraPhotoPhase.TAKING -> {
-                        cameraDialogVisible = false
-                        photoLoading = true
-                    }
+        takePhoto = { phase, byteArray ->
+            when (phase) {
+                CameraPhotoPhase.TAKING -> {
+                    cameraDialogVisible = false
+                    photoLoading = true
+                }
 
-                    CameraPhotoPhase.DONE -> {
-                        if (byteArray != null) {
-                            editBox(
-                                box?.copy(
-                                    image = byteArray
-                                )
+                CameraPhotoPhase.DONE -> {
+                    if (byteArray != null) {
+                        editItem(
+                            item?.copy(
+                                image = byteArray
                             )
-                        }
-                        photoLoading = false
+                        )
                     }
+                    photoLoading = false
+                }
 
-                    CameraPhotoPhase.ERROR -> {
-                        photoLoading = false
-                    }
+                CameraPhotoPhase.ERROR -> {
+                    photoLoading = false
                 }
             }
-        } else null,
-        overlay = if (cameraDialogType == CameraType.PHOTO) {
-            {
-                Box {
-                    Column(
-                        modifier = Modifier.height(180.dp),
-                        verticalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        HorizontalDivider()
-                        HorizontalDivider()
-                    }
+        },
+        overlay = {
+            Box {
+                Column(
+                    modifier = Modifier.height(180.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    HorizontalDivider()
+                    HorizontalDivider()
                 }
             }
-        } else {
-            {}
         }
     )
 
@@ -205,74 +180,26 @@ private fun BoxDetailsScreenContent(
         ) {
             item {
                 CameraImage(
-                    image = box?.image,
-                    photoLoading = photoLoading || box == null,
+                    image = item?.image,
+                    photoLoading = photoLoading || item == null,
                     onEditImage = {
-                        cameraDialogType = CameraType.PHOTO
                         cameraDialogVisible = true
                     },
                     onDeleteImage = {
-                        editBox(
-                            box?.copy(
+                        editItem(
+                            item?.copy(
                                 image = null
                             )
                         )
                     },
-                    addImageLabel = stringResource(R.string.add_box_picture),
-                    imageLabel = stringResource(R.string.box_picture)
+                    addImageLabel = stringResource(R.string.add_item_picture),
+                    imageLabel = stringResource(R.string.item_picture)
                 )
             }
             item {
                 OutlinedTextField(
                     modifier = Modifier.padding(top = 8.dp),
-                    value = box?.code ?: "",
-                    label = {
-                        Text(text = stringResource(id = R.string.code))
-                    },
-                    isError = codeError != InputErrorType.NONE,
-                    supportingText = when (codeError) {
-                        InputErrorType.EMPTY -> {
-                            { Text(text = stringResource(R.string.code_error_1)) }
-                        }
-
-                        InputErrorType.ALREADY_EXISTS -> {
-                            { Text(text = stringResource(R.string.code_error_2)) }
-                        }
-
-                        else -> null
-                    },
-                    onValueChange = {
-                        editBox(
-                            box?.copy(
-                                code = it
-                            )
-                        )
-                    },
-                    trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                cameraDialogType = CameraType.SCANNER
-                                cameraDialogVisible = true
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.QrCodeScanner,
-                                contentDescription = stringResource(R.string.scanner)
-                            )
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { focusManager.clearFocus() }
-                    )
-                )
-            }
-            item {
-                OutlinedTextField(
-                    modifier = Modifier.padding(top = 8.dp),
-                    value = box?.name ?: "",
+                    value = item?.name ?: "",
                     label = {
                         Text(text = stringResource(R.string.name))
                     },
@@ -281,8 +208,8 @@ private fun BoxDetailsScreenContent(
                         { Text(text = stringResource(R.string.name_error_1)) }
                     } else null,
                     onValueChange = {
-                        editBox(
-                            box?.copy(
+                        editItem(
+                            item?.copy(
                                 name = it
                             )
                         )
@@ -298,13 +225,13 @@ private fun BoxDetailsScreenContent(
             item {
                 OutlinedTextField(
                     modifier = Modifier.padding(top = 8.dp),
-                    value = box?.description ?: "",
+                    value = item?.description ?: "",
                     label = {
                         Text(text = stringResource(R.string.description))
                     },
                     onValueChange = {
-                        editBox(
-                            box?.copy(
+                        editItem(
+                            item?.copy(
                                 description = it
                             )
                         )

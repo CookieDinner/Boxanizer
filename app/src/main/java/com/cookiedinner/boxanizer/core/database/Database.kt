@@ -1,5 +1,6 @@
 package com.cookiedinner.boxanizer.core.database
 
+import android.util.Log
 import com.cookiedinner.boxanizer.database.Box
 import com.cookiedinner.boxanizer.database.BoxanizerDb
 import com.cookiedinner.boxanizer.database.Item
@@ -43,9 +44,17 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
                 description = box.description?.ifBlank { null },
                 image = box.image
             )
-            insertedBox = boxQueries.selectLastBox().executeAsOneOrNull()
+            insertedBox = boxQueries.selectLastInsertedBox().executeAsOneOrNull()
         }
         return insertedBox
+    }
+
+    @Throws(Exception::class)
+    fun deleteBox(boxId: Long) {
+        database.transaction {
+            boxQueries.delete(boxId)
+            boxQueries.deleteItemLinks(boxId)
+        }
     }
 
     fun itemsSelectAll(): List<Item> {
@@ -53,18 +62,42 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
     }
 
     fun itemsSelectRemovedFromBoxes(): List<Item> {
-        return emptyList()
+        return itemQueries.selectRemovedFromBoxes().executeAsList()
     }
 
     fun itemsSelectInBoxes(): List<Item> {
-        return emptyList()
+        return itemQueries.selectInBoxes().executeAsList()
     }
 
     fun itemsSelectNotInBoxes(): List<Item> {
-        return emptyList()
+        return itemQueries.selectNotInBoxes().executeAsList()
     }
 
     fun itemSelectById(id: Long): Item? {
         return itemQueries.selectById(id).executeAsOneOrNull()
+    }
+
+    @Throws(Exception::class)
+    fun insertItem(item: Item): Item? {
+        var insertedItem: Item? = null
+        database.transaction {
+            itemQueries.insert(
+                id = if (item.id == -1L) null else item.id,
+                name = item.name,
+                description = item.description?.ifBlank { null },
+                image = item.image
+            )
+            insertedItem = itemQueries.selectLastInsertedItem().executeAsOneOrNull()
+        }
+        return insertedItem
+    }
+
+    @Throws(Exception::class)
+    fun deleteItem(itemId: Long) {
+        database.transaction {
+            itemQueries.delete(itemId)
+            itemQueries.deleteBoxLinks(itemId)
+            itemQueries.deleteTagLinks(itemId)
+        }
     }
 }

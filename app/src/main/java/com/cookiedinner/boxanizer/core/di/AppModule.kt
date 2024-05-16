@@ -7,6 +7,7 @@ import com.cookiedinner.boxanizer.core.data.DataStoreManager
 import com.cookiedinner.boxanizer.core.database.DatabaseDriverFactory
 import com.cookiedinner.boxanizer.core.navigation.Navigator
 import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
+import com.cookiedinner.boxanizer.items.viewmodels.ItemDetailsViewModel
 import com.cookiedinner.boxanizer.items.viewmodels.ItemsViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -23,5 +24,6 @@ val appModule = module {
     viewModel { BoxDetailsViewModel(get(), get()) }
 
     viewModel { ItemsViewModel(get(), get()) }
+    viewModel { ItemDetailsViewModel(get(), get()) }
 
 }

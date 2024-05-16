@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.navArgument
 import com.cookiedinner.boxanizer.boxes.screens.BoxDetailsScreen
 import com.cookiedinner.boxanizer.boxes.screens.BoxesScreen
+import com.cookiedinner.boxanizer.items.screens.ItemDetailsScreen
 import com.cookiedinner.boxanizer.items.screens.ItemsScreen
 import com.cookiedinner.boxanizer.settings.screens.SettingsScreen
 import org.koin.compose.koinInject
@@ -31,6 +32,7 @@ fun AppNavigationGraph(
         customNavigationComposable(NavigationScreens.SettingsScreen.route) {
             SettingsScreen()
         }
+
         customNavigationComposable(
             route = "${NavigationScreens.BoxDetailsScreen.route}?boxId={box_id}",
             arguments = listOf(
@@ -45,6 +47,22 @@ fun AppNavigationGraph(
         }
         customNavigationComposable(NavigationScreens.AddBoxScreen.route) {
             BoxDetailsScreen(boxId = -1L)
+        }
+
+        customNavigationComposable(
+            route = "${NavigationScreens.ItemDetailsScreen.route}?itemId={item_id}",
+            arguments = listOf(
+                navArgument("item_id") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )
+        ) {
+            val itemId = it.arguments?.getLong("item_id") ?: -1L
+            ItemDetailsScreen(itemId = itemId)
+        }
+        customNavigationComposable(NavigationScreens.AddItemScreen.route) {
+            ItemDetailsScreen(itemId = -1L)
         }
     }
 }

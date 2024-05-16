@@ -122,34 +122,41 @@ private fun AppNavigationScreenContent(
         snackbarHost = snackbar,
         topBar = {
             if (!navigationScreen.isMainScreen) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = when (navigationScreen) {
-                                NavigationScreens.BoxDetailsScreen -> stringResource(R.string.box_details)
-                                NavigationScreens.AddBoxScreen -> stringResource(R.string.add_box)
-                                else -> ""
-                            }
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(
-                            onClick = popBackStack
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = stringResource(R.string.back_screen)
+                Surface(
+                    shadowElevation = if (scrollBehavior.state.overlappedFraction > 0.0) 4.dp else 0.dp,
+                ) {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text = when (navigationScreen) {
+                                    NavigationScreens.BoxDetailsScreen -> stringResource(R.string.box_details)
+                                    NavigationScreens.AddBoxScreen -> stringResource(R.string.add_box)
+                                    NavigationScreens.ItemDetailsScreen -> stringResource(R.string.item_details)
+                                    NavigationScreens.AddItemScreen -> stringResource(R.string.add_item)
+                                    else -> ""
+                                }
                             )
-                        }
-                    },
-                    scrollBehavior = scrollBehavior,
-                )
+                        },
+                        navigationIcon = {
+                            IconButton(
+                                onClick = popBackStack
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                                    contentDescription = stringResource(R.string.back_screen)
+                                )
+                            }
+                        },
+                        scrollBehavior = scrollBehavior,
+                    )
+                }
             }
         },
         floatingActionButton = {
             AnimatedVisibility(
                 visible = navigationScreen in listOf(NavigationScreens.BoxesScreen, NavigationScreens.ItemsScreen) ||
-                        fabVisible && navigationScreen in listOf(NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen),
+                        fabVisible && navigationScreen in listOf(NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen,
+                                                                 NavigationScreens.ItemDetailsScreen, NavigationScreens.AddItemScreen),
                 enter = fadeIn() + scaleIn(),
                 exit = fadeOut() + scaleOut()
             ) {
@@ -163,12 +170,17 @@ private fun AppNavigationScreenContent(
                                 goToScreen(NavigationScreens.AddBoxScreen.route)
                             }
 
-                            NavigationScreens.ItemsScreen -> {
-                                //TODO Go to new item details
-                            }
-
                             NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen -> {
                                 sendSharedAction(SharedActions.SAVE_BOX)
+                                changeFabVisibility(false)
+                            }
+
+                            NavigationScreens.ItemsScreen -> {
+                                goToScreen(NavigationScreens.AddItemScreen.route)
+                            }
+
+                            NavigationScreens.ItemDetailsScreen, NavigationScreens.AddItemScreen -> {
+                                sendSharedAction(SharedActions.SAVE_ITEM)
                                 changeFabVisibility(false)
                             }
 
@@ -190,10 +202,16 @@ private fun AppNavigationScreenContent(
                                 )
                             }
 
-                            NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen -> {
+                            NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen,
+                            NavigationScreens.ItemDetailsScreen, NavigationScreens.AddItemScreen -> {
                                 Icon(
                                     imageVector = Icons.Default.Save,
-                                    contentDescription = stringResource(id = R.string.save_box)
+                                    contentDescription = stringResource(
+                                        id = when (it) {
+                                            NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen -> R.string.save_box
+                                            else -> R.string.save_item
+                                        }
+                                    )
                                 )
                             }
 

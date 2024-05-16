@@ -13,11 +13,32 @@ SELECT * FROM Item;
 selectById:
 SELECT * FROM Item WHERE id = :itemId;
 
+selectRemovedFromBoxes:
+SELECT Item.* FROM Item
+INNER JOIN BoxItem ON Item.id = BoxItem.itemId
+WHERE BoxItem.amountRemovedFromBox != 0;
+
 selectInBoxes:
 SELECT Item.* FROM Item
-INNER JOIN BoxItem ON Item.id = BoxItem.itemId;
+INNER JOIN BoxItem ON Item.id = BoxItem.itemId
+WHERE BoxItem.amountRemovedFromBox = 0;
 
 selectNotInBoxes:
 SELECT Item.* FROM Item
 LEFT JOIN BoxItem ON Item.id = BoxItem.itemId
 WHERE BoxItem.itemId IS NULL;
+
+insert:
+INSERT OR REPLACE INTO Item VALUES (:id, :name, :description, :image);
+
+selectLastInsertedItem:
+SELECT * FROM Item WHERE id = last_insert_rowid();
+
+delete:
+DELETE FROM Item WHERE id = :id;
+
+deleteBoxLinks:
+DELETE FROM BoxItem WHERE itemId = :id;
+
+deleteTagLinks:
+DELETE FROM ItemTag WHERE itemId = :id;

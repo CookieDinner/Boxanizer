@@ -3,6 +3,7 @@ package com.cookiedinner.boxanizer.boxes.viewmodels
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.cookiedinner.boxanizer.R
+import com.cookiedinner.boxanizer.core.models.InputErrorType
 import com.cookiedinner.boxanizer.core.data.DataProvider
 import com.cookiedinner.boxanizer.core.models.emptyBox
 import com.cookiedinner.boxanizer.core.utilities.safelyShowSnackbar
@@ -23,14 +24,14 @@ class BoxDetailsViewModel(
     private val _currentBox = MutableStateFlow<Box?>(null)
     val currentBox = _currentBox.asStateFlow()
 
-    private val _codeError = MutableStateFlow(0)
+    private val _originalCurrentBox = MutableStateFlow<Box?>(null)
+    val originalCurrentBox = _originalCurrentBox.asStateFlow()
+
+    private val _codeError = MutableStateFlow(InputErrorType.NONE)
     val codeError = _codeError.asStateFlow()
 
     private val _nameError = MutableStateFlow(false)
     val nameError = _nameError.asStateFlow()
-
-    private val _originalCurrentBox = MutableStateFlow<Box?>(null)
-    val originalCurrentBox = _originalCurrentBox.asStateFlow()
 
     private var initialized = false
 
@@ -40,7 +41,7 @@ class BoxDetailsViewModel(
                 try {
                     val boxDetails = if (boxId == -1L) emptyBox else dataProvider.getBoxDetails(boxId)
                     withContext(Dispatchers.Main) {
-                        _codeError.value = 0
+                        _codeError.value = InputErrorType.NONE
                         _nameError.value = false
                         _currentBox.value = boxDetails
                         _originalCurrentBox.value = boxDetails
@@ -48,7 +49,7 @@ class BoxDetailsViewModel(
                     initialized = true
                 } catch (ex: Exception) {
                     ex.printStackTrace()
-                    snackbarHostState.safelyShowSnackbar(context.getString(R.string.boxDetailsError))
+                    snackbarHostState.safelyShowSnackbar(context.getString(R.string.box_details_error))
                 }
             }
         }
@@ -65,9 +66,9 @@ class BoxDetailsViewModel(
                     withContext(Dispatchers.Main) {
                         _nameError.value = box.name.isBlank()
                         _codeError.value = when {
-                            box.code.isBlank() -> 1
-                            codeBox != null && codeBox.id != box.id && codeBox.code == box.code -> 2
-                            else -> 0
+                            box.code.isBlank() -> InputErrorType.EMPTY
+                            codeBox != null && codeBox.id != box.id && codeBox.code == box.code -> InputErrorType.ALREADY_EXISTS
+                            else -> InputErrorType.NONE
                         }
                     }
                 }
@@ -90,7 +91,7 @@ class BoxDetailsViewModel(
                 }
             } catch (ex: Exception) {
                 ex.printStackTrace()
-                snackbarHostState.safelyShowSnackbar(context.getString(R.string.boxSaveError))
+                snackbarHostState.safelyShowSnackbar(context.getString(R.string.box_save_error))
             }
         }
     }

@@ -24,8 +24,11 @@ WHERE Item.name LIKE '%' || :itemName || '%';
 insert:
 INSERT OR REPLACE INTO Box VALUES (:id, :code, :name, :description, :image);
 
-selectLastBox:
+selectLastInsertedBox:
 SELECT * FROM Box WHERE id = last_insert_rowid();
 
+delete:
+DELETE FROM Box WHERE id = :id;
 
-
+deleteItemLinks:
+DELETE FROM BoxItem WHERE boxId = :id;

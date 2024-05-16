@@ -33,11 +33,31 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
     }
 
     @Throws(Exception::class)
+    fun deleteBox(boxId: Long) {
+        database.deleteBox(boxId)
+    }
+
+    @Throws(Exception::class)
+    fun saveItem(item: Item): Item {
+        return database.insertItem(item) ?: throw Exception()
+    }
+
+    @Throws(Exception::class)
     fun getItems(): Map<ItemListType, List<Item>> {
         return mapOf(
             ItemListType.REMOVED to database.itemsSelectRemovedFromBoxes(),
             ItemListType.IN_BOXES to database.itemsSelectInBoxes(),
             ItemListType.REMAINING to database.itemsSelectNotInBoxes()
         )
+    }
+
+    @Throws(Exception::class)
+    fun getItemDetails(itemId: Long): Item {
+        return database.itemSelectById(itemId) ?: throw Exception()
+    }
+
+    @Throws(Exception::class)
+    fun deleteItem(itemId: Long) {
+        database.deleteItem(itemId)
     }
 }
