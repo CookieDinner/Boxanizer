@@ -9,6 +9,8 @@ import com.cookiedinner.boxanizer.core.models.emptyBox
 import com.cookiedinner.boxanizer.core.utilities.safelyShowSnackbar
 import com.cookiedinner.boxanizer.core.viewmodels.ViewModelWithSnack
 import com.cookiedinner.boxanizer.database.Box
+import com.cookiedinner.boxanizer.database.ItemInBox
+import com.cookiedinner.boxanizer.items.models.ItemListType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +35,9 @@ class BoxDetailsViewModel(
     private val _nameError = MutableStateFlow(false)
     val nameError = _nameError.asStateFlow()
 
+    private val _items = MutableStateFlow<Map<ItemListType, List<ItemInBox>>?>(null)
+    val items = _items.asStateFlow()
+
     private var initialized = false
 
     fun getBoxDetails(boxId: Long) {
@@ -45,6 +50,10 @@ class BoxDetailsViewModel(
                         _nameError.value = false
                         _currentBox.value = boxDetails
                         _originalCurrentBox.value = boxDetails
+                    }
+                    val boxItems = if (boxId == -1L) emptyList() else dataProvider.getBoxItems(boxId)
+                    withContext(Dispatchers.Main) {
+                        _items.value = boxItems.sortedBy { it.amountRemovedFromBox == 0L }.groupBy { if (it.amountRemovedFromBox > 0) ItemListType.REMOVED else ItemListType.IN_BOXES }
                     }
                     initialized = true
                 } catch (ex: Exception) {

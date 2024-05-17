@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -44,6 +45,7 @@ import com.cookiedinner.boxanizer.R
 @Composable
 fun DeletableCard(
     modifier: Modifier = Modifier,
+    padding: PaddingValues = PaddingValues(20.dp),
     onClick: () -> Unit,
     onDelete: () -> Unit,
     content: @Composable RowScope.() -> Unit
@@ -122,7 +124,7 @@ fun DeletableCard(
                                 expanded = !expanded
                             }
                         )
-                        .padding(20.dp),
+                        .padding(padding),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     content()

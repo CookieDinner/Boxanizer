@@ -4,6 +4,7 @@ import com.cookiedinner.boxanizer.core.database.Database
 import com.cookiedinner.boxanizer.core.database.DatabaseDriverFactory
 import com.cookiedinner.boxanizer.database.Box
 import com.cookiedinner.boxanizer.database.Item
+import com.cookiedinner.boxanizer.database.ItemInBox
 import com.cookiedinner.boxanizer.items.models.ItemListType
 
 class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
@@ -22,6 +23,11 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
     @Throws(Exception::class)
     fun getBoxByCode(code: String): Box? {
         return database.boxSelectByCode(code)
+    }
+
+    @Throws(Exception::class)
+    fun getBoxItems(boxId: Long): List<ItemInBox> {
+        return database.itemsSelectByBoxId(boxId)
     }
 
     @Throws(Exception::class)

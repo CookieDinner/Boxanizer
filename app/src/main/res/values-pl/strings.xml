@@ -57,4 +57,6 @@
     <string name="close_floating_menu">Zamknij menu podręczne</string>
     <string name="open_floating_menu">Otwórz menu podręczne</string>
     <string name="empty_items_query">Nie znaleziono przedmiotów dla zapytania</string>
+    <string name="removed_from_this_box">Wyciągnięte</string>
+    <string name="in_this_box">W pudełku</string>
 </resources>

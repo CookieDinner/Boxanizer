@@ -5,6 +5,7 @@ import app.cash.sqldelight.Query
 import com.cookiedinner.boxanizer.database.Box
 import com.cookiedinner.boxanizer.database.BoxanizerDb
 import com.cookiedinner.boxanizer.database.Item
+import com.cookiedinner.boxanizer.database.ItemInBox
 
 class Database(databaseDriverFactory: DatabaseDriverFactory) {
     private val database = BoxanizerDb(
@@ -107,6 +108,10 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
 
     fun itemSelectById(id: Long): Item? {
         return itemQueries.selectById(id).executeAsOneOrNull()
+    }
+
+    fun itemsSelectByBoxId(boxId: Long): List<ItemInBox> {
+        return itemQueries.itemInBox(boxId).executeAsList()
     }
 
     @Throws(Exception::class)

@@ -8,11 +8,14 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +23,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -72,6 +76,9 @@ import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
 import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
 import com.cookiedinner.boxanizer.database.Box
 import com.cookiedinner.boxanizer.database.Item
+import com.cookiedinner.boxanizer.database.ItemInBox
+import com.cookiedinner.boxanizer.items.components.ItemComponent
+import com.cookiedinner.boxanizer.items.models.ItemListType
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -87,6 +94,8 @@ fun BoxDetailsScreen(
 
     val codeError = viewModel.codeError.collectAsStateWithLifecycle()
     val nameError = viewModel.nameError.collectAsStateWithLifecycle()
+
+    val items = viewModel.items.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.setSnackbarHost(mainViewModel.snackbarHostState)
@@ -107,7 +116,7 @@ fun BoxDetailsScreen(
 
     BoxDetailsScreenContent(
         box = currentBox.value,
-        items = listOf(), //TODO: items
+        items = items.value,
         editBox = {
             viewModel.editCurrentBox(it)
         },
@@ -116,10 +125,11 @@ fun BoxDetailsScreen(
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BoxDetailsScreenContent(
     box: Box?,
-    items: List<Item>,
+    items: Map<ItemListType, List<ItemInBox>>?,
     editBox: (Box?) -> Unit,
     codeError: InputErrorType,
     nameError: Boolean
@@ -310,6 +320,52 @@ private fun BoxDetailsScreenContent(
                         )
                     }
                 )
+            }
+            if (items == null) {
+
+            } else {
+                items.forEach {
+                    if (it.value.isNotEmpty()) {
+                        stickyHeader {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .padding(top = 8.dp)
+                            ) {
+                                Text(
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    text = when (it.key) {
+                                        ItemListType.REMOVED -> stringResource(R.string.removed_from_this_box)
+                                        else -> stringResource(R.string.in_this_box)
+                                    },
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                HorizontalDivider()
+                            }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+                        items(
+                            items = it.value,
+                            key = {
+                                it.id
+                            }
+                        ) {
+                            ItemComponent(
+                                modifier = Modifier.padding(horizontal = 3.dp),
+                                itemInBox = it,
+                                onClick = { /*TODO*/ },
+                                onDelete = { /*TODO*/ },
+                                onAdded = { /*TODO*/ },
+                                onRemoved = { /*TODO*/ },
+                                onBorrowed = { /*TODO*/ },
+                                onReturned = { /*TODO*/ }
+                            )
+                        }
+                    }
+                }
             }
         }
     }

@@ -1,9 +1,7 @@
 package com.cookiedinner.boxanizer.items.screens
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,13 +24,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cookiedinner.boxanizer.R
-import com.cookiedinner.boxanizer.boxes.components.BoxComponent
 import com.cookiedinner.boxanizer.core.components.ListSkeleton
 import com.cookiedinner.boxanizer.core.components.keyboardAsState
 import com.cookiedinner.boxanizer.core.models.SharedActions
