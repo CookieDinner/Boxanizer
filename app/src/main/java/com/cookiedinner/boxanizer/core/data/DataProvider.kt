@@ -11,10 +11,7 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
 
     @Throws(Exception::class)
     fun getBoxes(query: String = ""): List<Box> {
-        return if (query.isEmpty())
-            database.boxesSelectAll()
-        else
-            database.boxesSelectByQuery(query)
+        return database.boxesSelectByQuery(query)
     }
 
     @Throws(Exception::class)
@@ -43,11 +40,11 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
     }
 
     @Throws(Exception::class)
-    fun getItems(): Map<ItemListType, List<Item>> {
+    fun getItems(query: String): Map<ItemListType, List<Item>> {
         return mapOf(
-            ItemListType.REMOVED to database.itemsSelectRemovedFromBoxes(),
-            ItemListType.IN_BOXES to database.itemsSelectInBoxes(),
-            ItemListType.REMAINING to database.itemsSelectNotInBoxes()
+            ItemListType.REMOVED to database.itemsSelectRemovedFromBoxes(query),
+            ItemListType.IN_BOXES to database.itemsSelectInBoxes(query),
+            ItemListType.REMAINING to database.itemsSelectNotInBoxes(query)
         )
     }
 

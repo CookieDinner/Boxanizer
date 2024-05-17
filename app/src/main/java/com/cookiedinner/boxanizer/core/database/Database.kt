@@ -1,6 +1,7 @@
 package com.cookiedinner.boxanizer.core.database
 
 import android.util.Log
+import app.cash.sqldelight.Query
 import com.cookiedinner.boxanizer.database.Box
 import com.cookiedinner.boxanizer.database.BoxanizerDb
 import com.cookiedinner.boxanizer.database.Item
@@ -14,12 +15,31 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
     private val itemQueries = database.itemQueries
     private val itemTagQueries = database.itemTagQueries
 
-    fun boxesSelectAll(): List<Box> {
-        return boxQueries.selectAll().executeAsList()
+    private fun <T: Any> buildListFromQuery(
+        searchQuery: String,
+        databaseFunction: (String) -> Query<T>,
+        comparisonField: (T) -> Any
+    ): List<T> {
+        val fragmentedQuery = searchQuery.split(" ").filter { it.isNotBlank() }
+        val finalList = mutableListOf<T>()
+        if (fragmentedQuery.isEmpty()) {
+            finalList.addAll(databaseFunction(searchQuery).executeAsList())
+        } else {
+            fragmentedQuery.forEachIndexed { index, value ->
+                if (index == 0)
+                    finalList.addAll(databaseFunction(value).executeAsList())
+                else
+                    finalList.retainAll { item -> databaseFunction(value).executeAsList().any { comparisonField(it) == comparisonField(item) } }
+            }
+        }
+        return finalList
     }
-
     fun boxesSelectByQuery(query: String): List<Box> {
-        return boxQueries.selectByItemNames(query).executeAsList()
+        return buildListFromQuery(
+            searchQuery = query,
+            databaseFunction = boxQueries::searchByQuery,
+            comparisonField = { it.id },
+        )
     }
 
     fun boxSelectById(id: Long): Box? {
@@ -61,16 +81,28 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
         return itemQueries.selectAll().executeAsList()
     }
 
-    fun itemsSelectRemovedFromBoxes(): List<Item> {
-        return itemQueries.selectRemovedFromBoxes().executeAsList()
+    fun itemsSelectRemovedFromBoxes(query: String): List<Item> {
+        return buildListFromQuery(
+            searchQuery = query,
+            databaseFunction = itemQueries::selectRemovedFromBoxes,
+            comparisonField = { it.id }
+        )
     }
 
-    fun itemsSelectInBoxes(): List<Item> {
-        return itemQueries.selectInBoxes().executeAsList()
+    fun itemsSelectInBoxes(query: String): List<Item> {
+        return buildListFromQuery(
+            searchQuery = query,
+            databaseFunction = itemQueries::selectInBoxes,
+            comparisonField = { it.id }
+        )
     }
 
-    fun itemsSelectNotInBoxes(): List<Item> {
-        return itemQueries.selectNotInBoxes().executeAsList()
+    fun itemsSelectNotInBoxes(query: String): List<Item> {
+        return buildListFromQuery(
+            searchQuery = query,
+            databaseFunction = itemQueries::selectNotInBoxes,
+            comparisonField = { it.id }
+        )
     }
 
     fun itemSelectById(id: Long): Item? {

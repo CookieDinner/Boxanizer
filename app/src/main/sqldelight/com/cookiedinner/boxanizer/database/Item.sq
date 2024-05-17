@@ -16,17 +16,29 @@ SELECT * FROM Item WHERE id = :itemId;
 selectRemovedFromBoxes:
 SELECT Item.* FROM Item
 INNER JOIN BoxItem ON Item.id = BoxItem.itemId
-WHERE BoxItem.amountRemovedFromBox != 0;
+WHERE BoxItem.amountRemovedFromBox != 0
+AND CASE WHEN :query != '' THEN
+(Item.name LIKE '%' || :query || '%' OR
+Item.description LIKE '%' || :query || '%')
+ELSE 1 END;
 
 selectInBoxes:
 SELECT Item.* FROM Item
 INNER JOIN BoxItem ON Item.id = BoxItem.itemId
-WHERE BoxItem.amountRemovedFromBox = 0;
+WHERE BoxItem.amountRemovedFromBox = 0
+AND CASE WHEN :query != '' THEN
+(Item.name LIKE '%' || :query || '%' OR
+Item.description LIKE '%' || :query || '%')
+ELSE 1 END;
 
 selectNotInBoxes:
 SELECT Item.* FROM Item
 LEFT JOIN BoxItem ON Item.id = BoxItem.itemId
-WHERE BoxItem.itemId IS NULL;
+WHERE BoxItem.itemId IS NULL
+AND CASE WHEN :query != '' THEN
+(Item.name LIKE '%' || :query || '%' OR
+Item.description LIKE '%' || :query || '%')
+ELSE 1 END;
 
 insert:
 INSERT OR REPLACE INTO Item VALUES (:id, :name, :description, :image);

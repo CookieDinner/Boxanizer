@@ -21,7 +21,7 @@
     <string name="app_version">Wersja aplikacji</string>
     <string name="check_for_updates">Sprawdź aktualizacje</string>
     <string name="empty_boxes">Nie masz jeszcze żadnych pudełek.\nAby dodać jedno kliknij przycisk \"+\" w prawym dolnym rogu ekranu</string>
-    <string name="empty_boxes_query">Nie znaleziono pudełek dla wpisanego zapytania</string>
+    <string name="empty_boxes_query">Nie znaleziono pudełek dla zapytania</string>
     <string name="add_box">Dodaj pudełko</string>
     <string name="box_details_error">Błąd pobierania danych pudełka</string>
     <string name="boxes_error">Błąd pobierania pudełek</string>
@@ -51,4 +51,10 @@
     <string name="removed_from_boxes">Wyciągnięte z pudełek</string>
     <string name="in_boxes">W pudełkach</string>
     <string name="not_in_any_boxes">Nie będące w żadnych pudełkach</string>
+    <string name="search">Wyszukaj...</string>
+    <string name="edit_search">Edytuj frazę wyszukiwania</string>
+    <string name="search2">Wyszukaj</string>
+    <string name="close_floating_menu">Zamknij menu podręczne</string>
+    <string name="open_floating_menu">Otwórz menu podręczne</string>
+    <string name="empty_items_query">Nie znaleziono przedmiotów dla zapytania</string>
 </resources>

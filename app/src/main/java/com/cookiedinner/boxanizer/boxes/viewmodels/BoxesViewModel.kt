@@ -22,15 +22,17 @@ class BoxesViewModel(
     private val _boxes = MutableStateFlow<List<Box>?>(null)
     val boxes = _boxes.asStateFlow()
 
-    val currentQuery = mutableStateOf("")
-
-    fun getBoxes(query: String = "") {
+    fun getBoxes(
+        query: String = "",
+        callback: () -> Unit
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val boxes = dataProvider.getBoxes(query)
                 withContext(Dispatchers.Main) {
                     _boxes.value = boxes
                 }
+                callback()
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 snackbarHostState.safelyShowSnackbar(context.getString(R.string.boxes_error))

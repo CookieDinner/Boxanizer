@@ -1,9 +1,13 @@
 package com.cookiedinner.boxanizer.core.viewmodels
 
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cookiedinner.boxanizer.core.models.SearchType
 import com.cookiedinner.boxanizer.core.models.SharedActions
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -22,6 +26,14 @@ class MainViewModel : ViewModel() {
 
     val snackbarHostState = SnackbarHostState()
 
+    var rawBoxesSearchText = TextFieldValue()
+    private val _boxesSearchText = MutableStateFlow("")
+    val boxesSearchText = _boxesSearchText.asStateFlow()
+
+    var rawItemsSearchText = TextFieldValue()
+    private val _itemsSearchText = MutableStateFlow("")
+    val itemsSearchText = _itemsSearchText.asStateFlow()
+
     fun changeFabVisibility(visible: Boolean) {
         _fabVisible.value = visible
     }
@@ -33,6 +45,26 @@ class MainViewModel : ViewModel() {
     fun sendSharedAction(sharedAction: SharedActions) {
         viewModelScope.launch {
             _sharedActionListener.emit(sharedAction)
+        }
+    }
+
+    private var job: Job? = null
+    fun editSearch(searchType: SearchType, newText: TextFieldValue) {
+        job?.cancel()
+        job = viewModelScope.launch {
+            when (searchType) {
+                SearchType.BOXES -> {
+                    rawBoxesSearchText = newText
+                    delay(300)
+                    _boxesSearchText.value = newText.text
+                }
+
+                SearchType.ITEMS -> {
+                    rawItemsSearchText = newText
+                    delay(300)
+                    _itemsSearchText.value = newText.text
+                }
+            }
         }
     }
 }

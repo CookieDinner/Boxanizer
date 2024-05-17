@@ -22,13 +22,17 @@ class ItemsViewModel(
     private val _items = MutableStateFlow<Map<ItemListType, List<Item>>?>(null)
     val items = _items.asStateFlow()
 
-    fun getItems() {
+    fun getItems(
+        query: String = "",
+        callback: () -> Unit
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val items = dataProvider.getItems()
+                val items = dataProvider.getItems(query)
                 withContext(Dispatchers.Main) {
                     _items.value = items
                 }
+                callback()
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 snackbarHostState.safelyShowSnackbar(context.getString(R.string.items_error))

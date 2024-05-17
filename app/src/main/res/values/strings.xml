@@ -21,7 +21,7 @@
     <string name="app_version">App version</string>
     <string name="check_for_updates">Check for updates</string>
     <string name="empty_boxes">You don\'t have any boxes yet.\nTo add one press the \"+\" button in the bottom right corner of the screen</string>
-    <string name="empty_boxes_query">No boxes found for the typed in query</string>
+    <string name="empty_boxes_query">No boxes found for the query</string>
     <string name="add_box">Add box</string>
     <string name="box_details_error">Failed to fetch box details</string>
     <string name="boxes_error">Failed to fetch boxes</string>
@@ -51,4 +51,10 @@
     <string name="removed_from_boxes">Removed from boxes</string>
     <string name="in_boxes">In boxes</string>
     <string name="not_in_any_boxes">Not in any boxes</string>
+    <string name="search">Search...</string>
+    <string name="edit_search">Edit search</string>
+    <string name="search2">Search</string>
+    <string name="close_floating_menu">Close floating menu</string>
+    <string name="open_floating_menu">Open floating menu</string>
+    <string name="empty_items_query">No items found for the query</string>
 </resources>

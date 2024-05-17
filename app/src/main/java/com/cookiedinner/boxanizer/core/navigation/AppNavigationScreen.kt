@@ -1,24 +1,45 @@
 package com.cookiedinner.boxanizer.core.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.SavedSearch
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -26,6 +47,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -34,20 +56,40 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.cookiedinner.boxanizer.R
+import com.cookiedinner.boxanizer.core.components.CameraDialog
+import com.cookiedinner.boxanizer.core.components.keyboardAsState
 import com.cookiedinner.boxanizer.core.models.BottomNavItem
+import com.cookiedinner.boxanizer.core.models.SearchType
 import com.cookiedinner.boxanizer.core.models.SharedActions
 import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
 import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
@@ -75,7 +117,10 @@ fun AppNavigationScreen(
             SnackbarHost(hostState = viewModel.snackbarHostState) {
                 Snackbar(snackbarData = it)
             }
-        }
+        },
+        boxesSearchText = viewModel.rawBoxesSearchText,
+        itemsSearchText = viewModel.rawItemsSearchText,
+        editSearchText = viewModel::editSearch
     )
 }
 
@@ -90,7 +135,10 @@ private fun AppNavigationScreenContent(
     popBackStack: () -> Unit,
     sendSharedAction: (SharedActions) -> Unit,
     changeFabVisibility: (Boolean) -> Unit,
-    snackbar: @Composable () -> Unit
+    snackbar: @Composable () -> Unit,
+    boxesSearchText: TextFieldValue,
+    itemsSearchText: TextFieldValue,
+    editSearchText: (SearchType, TextFieldValue) -> Unit
 ) {
     val bottomNavItems = listOf(
         BottomNavItem(
@@ -115,6 +163,41 @@ private fun AppNavigationScreenContent(
     )
     val navigationScreen = NavigationScreens.fromRoute(currentRoute)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    val coroutineScope = rememberCoroutineScope()
+    val keyboardVisible by keyboardAsState()
+    var searchBarVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var fabExpanded by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var scannerDialogVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    BackHandler(
+        enabled = fabExpanded || searchBarVisible
+    ) {
+        coroutineScope.launch {
+            if (searchBarVisible) {
+                searchBarVisible = false
+                delay(250)
+            }
+            fabExpanded = false
+        }
+    }
+
+    CameraDialog(
+        visible = scannerDialogVisible && navigationScreen == NavigationScreens.BoxesScreen,
+        onDismissRequest = { scannerDialogVisible = false },
+        onScanned = { code ->
+            scannerDialogVisible = false
+            // TODO Check the scanned code and move to found box
+        }
+    )
+
     Scaffold(
         modifier = Modifier
             .navigationBarsPadding()
@@ -153,77 +236,303 @@ private fun AppNavigationScreenContent(
             }
         },
         floatingActionButton = {
+            var searchBarText by remember {
+                mutableStateOf(TextFieldValue())
+            }
+            LaunchedEffect(navigationScreen) {
+                coroutineScope.launch {
+                    if (searchBarVisible) {
+                        searchBarVisible = false
+                        delay(250)
+                    }
+                    fabExpanded = false
+                    searchBarText = when (navigationScreen) {
+                        NavigationScreens.BoxesScreen -> boxesSearchText
+                        NavigationScreens.ItemsScreen -> itemsSearchText
+                        else -> TextFieldValue()
+                    }
+                }
+            }
             AnimatedVisibility(
                 visible = navigationScreen in listOf(NavigationScreens.BoxesScreen, NavigationScreens.ItemsScreen) ||
-                        fabVisible && navigationScreen in listOf(NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen,
-                                                                 NavigationScreens.ItemDetailsScreen, NavigationScreens.AddItemScreen),
+                        fabVisible && navigationScreen in listOf(
+                    NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen,
+                    NavigationScreens.ItemDetailsScreen, NavigationScreens.AddItemScreen
+                ),
                 enter = fadeIn() + scaleIn(),
                 exit = fadeOut() + scaleOut()
             ) {
-                FloatingActionButton(
+                Row(
                     modifier = Modifier
                         .padding(8.dp)
                         .imePadding(),
-                    onClick = {
-                        when (navigationScreen) {
-                            NavigationScreens.BoxesScreen -> {
-                                goToScreen(NavigationScreens.AddBoxScreen.route)
-                            }
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    AnimatedVisibility(
+                        modifier = Modifier
+                            .zIndex(1f)
+                            .padding(bottom = if (keyboardVisible) 0.dp else 95.dp),
+                        visible = searchBarVisible
+                    ) {
+                        FloatingActionButton(
+                            modifier = Modifier
+                                .padding(start = 12.dp)
+                                .padding(vertical = 12.dp)
+                                .drawWithContent {
+                                    val paddingPx = 12.dp.toPx()
+                                    clipRect(
+                                        left = -paddingPx,
+                                        top = -paddingPx,
+                                        bottom = size.height + paddingPx,
+                                        right = size.width
+                                    ) {
+                                        this@drawWithContent.drawContent()
+                                    }
+                                },
+                            onClick = {},
+                            shape = RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp)
+                        ) {
+                            OutlinedTextField(
+                                modifier = Modifier.padding(6.dp),
+                                value = searchBarText,
+                                onValueChange = {
+                                    searchBarText = it
+                                    when (navigationScreen) {
+                                        NavigationScreens.BoxesScreen -> editSearchText(SearchType.BOXES, it)
+                                        NavigationScreens.ItemsScreen -> editSearchText(SearchType.ITEMS, it)
+                                        else -> {}
+                                    }
+                                },
+                                placeholder = { Text(text = stringResource(R.string.search)) },
+                                keyboardOptions = KeyboardOptions(
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        coroutineScope.launch {
+                                            searchBarVisible = false
+                                            delay(250)
+                                            fabExpanded = false
+                                        }
 
-                            NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen -> {
-                                sendSharedAction(SharedActions.SAVE_BOX)
-                                changeFabVisibility(false)
-                            }
-
-                            NavigationScreens.ItemsScreen -> {
-                                goToScreen(NavigationScreens.AddItemScreen.route)
-                            }
-
-                            NavigationScreens.ItemDetailsScreen, NavigationScreens.AddItemScreen -> {
-                                sendSharedAction(SharedActions.SAVE_ITEM)
-                                changeFabVisibility(false)
-                            }
-
-                            else -> {}
+                                    }
+                                ),
+                                trailingIcon = {
+                                    if (searchBarText.text.isNotBlank()) {
+                                        IconButton(
+                                            onClick = {
+                                                searchBarText = TextFieldValue()
+                                                when (navigationScreen) {
+                                                    NavigationScreens.BoxesScreen -> editSearchText(SearchType.BOXES, TextFieldValue())
+                                                    NavigationScreens.ItemsScreen -> editSearchText(SearchType.ITEMS, TextFieldValue())
+                                                    else -> {}
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = stringResource(R.string.delete)
+                                            )
+                                        }
+                                    }
+                                }
+                            )
                         }
                     }
-                ) {
-                    AnimatedContent(targetState = navigationScreen) {
-                        when (it) {
-                            NavigationScreens.BoxesScreen, NavigationScreens.ItemsScreen -> {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = stringResource(
-                                        id = if (it == NavigationScreens.BoxesScreen)
-                                            R.string.add_box
-                                        else
-                                            R.string.add_item
-                                    )
-                                )
-                            }
-
-                            NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen,
-                            NavigationScreens.ItemDetailsScreen, NavigationScreens.AddItemScreen -> {
-                                Icon(
-                                    imageVector = Icons.Default.Save,
-                                    contentDescription = stringResource(
-                                        id = when (it) {
-                                            NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen -> R.string.save_box
-                                            else -> R.string.save_item
+                    FloatingActionButton(
+                        modifier = Modifier.zIndex(0f),
+                        onClick = {
+                            when (navigationScreen) {
+                                NavigationScreens.BoxesScreen, NavigationScreens.ItemsScreen -> {
+                                    coroutineScope.launch {
+                                        if (searchBarVisible) {
+                                            searchBarVisible = false
+                                            delay(250)
                                         }
-                                    )
-                                )
-                            }
+                                        fabExpanded = !fabExpanded
+                                    }
+                                }
 
-                            else -> {}
+                                NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen -> {
+                                    sendSharedAction(SharedActions.SAVE_BOX)
+                                    changeFabVisibility(false)
+                                }
+
+                                NavigationScreens.ItemDetailsScreen, NavigationScreens.AddItemScreen -> {
+                                    sendSharedAction(SharedActions.SAVE_ITEM)
+                                    changeFabVisibility(false)
+                                }
+
+                                else -> {}
+                            }
+                        }
+                    ) {
+                        AnimatedContent(targetState = navigationScreen) {
+                            when (it) {
+                                NavigationScreens.BoxesScreen, NavigationScreens.ItemsScreen -> {
+                                    Column {
+                                        AnimatedVisibility(
+                                            visible = fabExpanded
+                                        ) {
+                                            Column {
+                                                Surface(
+                                                    onClick = {
+                                                        coroutineScope.launch {
+                                                            if (searchBarVisible) {
+                                                                searchBarVisible = false
+                                                                delay(250)
+                                                            }
+                                                            fabExpanded = false
+                                                            sendSharedAction(SharedActions.SCROLL_TO_TOP)
+                                                        }
+                                                    },
+                                                    color = Color.Transparent,
+                                                    shape = MaterialTheme.shapes.small
+                                                ) {
+                                                    Icon(
+                                                        modifier = Modifier.padding(16.dp),
+                                                        imageVector = Icons.Default.ArrowUpward,
+                                                        contentDescription = ""
+                                                    )
+                                                }
+                                                AnimatedVisibility(
+                                                    visible = navigationScreen == NavigationScreens.BoxesScreen,
+                                                    enter = fadeIn(tween(delayMillis = 300)) + expandVertically(tween(delayMillis = 300)),
+                                                    exit = fadeOut(tween(delayMillis = 300)) + shrinkVertically(tween(delayMillis = 300))
+                                                ) {
+                                                    Surface(
+                                                        onClick = {
+                                                            coroutineScope.launch {
+                                                                if (searchBarVisible) {
+                                                                    searchBarVisible = false
+                                                                    delay(250)
+                                                                }
+                                                                fabExpanded = false
+                                                                scannerDialogVisible = true
+                                                            }
+                                                        },
+                                                        color = Color.Transparent,
+                                                        shape = MaterialTheme.shapes.small
+                                                    ) {
+                                                        Icon(
+                                                            modifier = Modifier.padding(16.dp),
+                                                            imageVector = Icons.Default.QrCodeScanner,
+                                                            contentDescription = stringResource(R.string.scanner)
+                                                        )
+                                                    }
+                                                }
+                                                Surface(
+                                                    onClick = {
+                                                        coroutineScope.launch {
+                                                            searchBarVisible = !searchBarVisible
+                                                        }
+                                                    },
+                                                    color = Color.Transparent,
+                                                    shape = MaterialTheme.shapes.small
+                                                ) {
+                                                    Icon(
+                                                        modifier = Modifier.padding(16.dp),
+                                                        imageVector = if (searchBarText.text.isNotBlank()) Icons.Default.SavedSearch else Icons.Default.Search,
+                                                        contentDescription = if (searchBarText.text.isNotBlank()) stringResource(R.string.edit_search) else stringResource(R.string.search2)
+                                                    )
+                                                }
+                                                Surface(
+                                                    onClick = {
+                                                        coroutineScope.launch {
+                                                            if (searchBarVisible) {
+                                                                searchBarVisible = false
+                                                                delay(250)
+                                                            }
+                                                            fabExpanded = false
+                                                            when (navigationScreen) {
+                                                                NavigationScreens.BoxesScreen -> {
+                                                                    goToScreen(NavigationScreens.AddBoxScreen.route)
+                                                                }
+
+                                                                NavigationScreens.ItemsScreen -> {
+                                                                    goToScreen(NavigationScreens.AddItemScreen.route)
+                                                                }
+
+                                                                else -> {}
+                                                            }
+                                                        }
+                                                    },
+                                                    color = Color.Transparent,
+                                                    shape = MaterialTheme.shapes.small
+                                                ) {
+                                                    Icon(
+                                                        modifier = Modifier.padding(16.dp),
+                                                        imageVector = Icons.Default.Add,
+                                                        contentDescription = stringResource(
+                                                            id = if (it == NavigationScreens.BoxesScreen)
+                                                                R.string.add_box
+                                                            else
+                                                                R.string.add_item
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        AnimatedContent(targetState = fabExpanded) {
+                                            Surface(color = Color.Transparent) {
+                                                BadgedBox(
+                                                    modifier = Modifier.padding(16.dp),
+                                                    badge = {
+                                                        androidx.compose.animation.AnimatedVisibility(
+                                                            visible = searchBarText.text.isNotBlank() && !fabExpanded,
+                                                            enter = fadeIn(),
+                                                            exit = fadeOut()
+                                                        ) {
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .padding(bottom = 12.dp, end = 8.dp)
+                                                                    .size(18.dp)
+                                                                    .clip(CircleShape)
+                                                                    .background(MaterialTheme.colorScheme.primary),
+                                                                contentAlignment = Alignment.Center
+                                                            ) {
+                                                                Icon(
+                                                                    modifier = Modifier.padding(2.dp),
+                                                                    imageVector = Icons.Default.SavedSearch,
+                                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                                    contentDescription = ""
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                ) {
+                                                    Icon(
+                                                        imageVector = if (it) Icons.Default.Close else Icons.Default.Menu,
+                                                        contentDescription = if (it) stringResource(R.string.close_floating_menu) else stringResource(R.string.open_floating_menu)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen,
+                                NavigationScreens.ItemDetailsScreen, NavigationScreens.AddItemScreen -> {
+                                    Icon(
+                                        imageVector = Icons.Default.Save,
+                                        contentDescription = stringResource(
+                                            id = when (it) {
+                                                NavigationScreens.BoxDetailsScreen, NavigationScreens.AddBoxScreen -> R.string.save_box
+                                                else -> R.string.save_item
+                                            }
+                                        )
+                                    )
+                                }
+
+                                else -> {}
+                            }
                         }
                     }
                 }
             }
-
         },
         bottomBar = {
-            if (bottomBarVisible && navigationScreen.isMainScreen) {
+            if ((!keyboardVisible || !searchBarVisible) && bottomBarVisible && navigationScreen.isMainScreen) {
                 Surface(shadowElevation = 12.dp) {
                     BottomAppBar {
                         bottomNavItems.forEach {
