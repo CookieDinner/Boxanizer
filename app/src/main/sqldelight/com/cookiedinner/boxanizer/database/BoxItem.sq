@@ -2,5 +2,6 @@ CREATE TABLE BoxItem (
     boxId INTEGER NOT NULL,
     itemId INTEGER NOT NULL,
     amountInBox INTEGER NOT NULL DEFAULT 1,
-    amountRemovedFromBox INTEGER NOT NULL DEFAULT 0
+    amountRemovedFromBox INTEGER NOT NULL DEFAULT 0,
+    lastTimeMovedSections INTEGER NOT NULL DEFAULT 0
 );

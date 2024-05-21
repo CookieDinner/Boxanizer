@@ -52,6 +52,8 @@ sqldelight {
     databases {
         create("BoxanizerDb") {
             packageName.set("com.cookiedinner.boxanizer.database")
+            schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
+            verifyMigrations.set(true)
         }
     }
 }
