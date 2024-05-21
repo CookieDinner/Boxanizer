@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.ImageNotSupported
 import androidx.compose.material.icons.outlined.BorderColor
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -160,30 +161,28 @@ fun CameraImage(
                                 verticalArrangement = Arrangement.SpaceBetween,
                                 horizontalAlignment = Alignment.End
                             ) {
-                                OutlinedIconButton(
-                                    modifier = Modifier.padding(4.dp),
+                                FilledIconButton(
+                                    modifier = Modifier.padding(8.dp),
                                     onClick = onDeleteImage,
                                     colors = IconButtonDefaults.filledIconButtonColors(
                                         containerColor = MaterialTheme.colorScheme.background,
                                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                    ),
-                                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
+                                    )
                                 ) {
                                     Icon(
                                         imageVector = Icons.Outlined.Delete,
                                         contentDescription = ""
                                     )
                                 }
-                                OutlinedIconButton(
-                                    modifier = Modifier.padding(4.dp),
+                                FilledIconButton(
+                                    modifier = Modifier.padding(8.dp),
                                     onClick = {
                                         onEditImage()
                                     },
                                     colors = IconButtonDefaults.filledIconButtonColors(
                                         containerColor = MaterialTheme.colorScheme.background,
                                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                    ),
-                                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
+                                    )
                                 ) {
                                     Icon(
                                         imageVector = Icons.Outlined.BorderColor,

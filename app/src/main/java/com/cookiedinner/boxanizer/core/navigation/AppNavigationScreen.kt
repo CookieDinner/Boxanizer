@@ -1,5 +1,6 @@
 package com.cookiedinner.boxanizer.core.navigation
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -11,13 +12,21 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -43,6 +52,7 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -70,6 +80,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -86,6 +97,7 @@ import com.cookiedinner.boxanizer.core.components.keyboardAsState
 import com.cookiedinner.boxanizer.core.models.BottomNavItem
 import com.cookiedinner.boxanizer.core.models.SearchType
 import com.cookiedinner.boxanizer.core.models.SharedActions
+import com.cookiedinner.boxanizer.core.models.rememberCameraDialogState
 import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
 import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
 import kotlinx.coroutines.delay
@@ -173,8 +185,26 @@ private fun AppNavigationScreenContent(
         mutableStateOf(false)
     }
 
-    var scannerDialogVisible by rememberSaveable {
-        mutableStateOf(false)
+    val cameraState = rememberCameraDialogState()
+    var searchBarText by remember {
+        mutableStateOf(TextFieldValue())
+    }
+    val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
+    LaunchedEffect(navigationScreen) {
+        cameraState.hide()
+        coroutineScope.launch {
+            if (searchBarVisible) {
+                searchBarVisible = false
+                delay(250)
+            }
+            fabExpanded = false
+            searchBarText = when (navigationScreen) {
+                NavigationScreens.BoxesScreen -> boxesSearchText
+                NavigationScreens.ItemsScreen -> itemsSearchText
+                else -> TextFieldValue()
+            }
+        }
     }
 
     BackHandler(
@@ -190,10 +220,8 @@ private fun AppNavigationScreenContent(
     }
 
     CameraDialog(
-        visible = scannerDialogVisible && navigationScreen == NavigationScreens.BoxesScreen,
-        onDismissRequest = { scannerDialogVisible = false },
+        state = cameraState,
         onScanned = { code ->
-            scannerDialogVisible = false
             // TODO Check the scanned code and move to found box
         }
     )
@@ -204,55 +232,37 @@ private fun AppNavigationScreenContent(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = snackbar,
         topBar = {
-            if (!navigationScreen.isMainScreen) {
-                Surface(
-                    shadowElevation = if (scrollBehavior.state.overlappedFraction > 0.0) 4.dp else 0.dp,
-                ) {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = when (navigationScreen) {
-                                    NavigationScreens.BoxDetailsScreen -> stringResource(R.string.box_details)
-                                    NavigationScreens.AddBoxScreen -> stringResource(R.string.add_box)
-                                    NavigationScreens.ItemDetailsScreen -> stringResource(R.string.item_details)
-                                    NavigationScreens.AddItemScreen -> stringResource(R.string.add_item)
-                                    else -> ""
-                                }
-                            )
-                        },
-                        navigationIcon = {
-                            IconButton(
-                                onClick = popBackStack
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                    contentDescription = stringResource(R.string.back_screen)
-                                )
+            Surface(
+                shadowElevation = (scrollBehavior.state.overlappedFraction * 15).coerceAtMost(4f).dp,
+            ) {
+                TopAppBar(
+                    modifier = if (!navigationScreen.isMainScreen) Modifier else Modifier.height(statusBarHeight),
+                    title = {
+                        Text(
+                            text = when (navigationScreen) {
+                                NavigationScreens.BoxDetailsScreen -> stringResource(R.string.box_details)
+                                NavigationScreens.AddBoxScreen -> stringResource(R.string.add_box)
+                                NavigationScreens.ItemDetailsScreen -> stringResource(R.string.item_details)
+                                NavigationScreens.AddItemScreen -> stringResource(R.string.add_item)
+                                else -> ""
                             }
-                        },
-                        scrollBehavior = scrollBehavior,
-                    )
-                }
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = popBackStack
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                                contentDescription = stringResource(R.string.back_screen)
+                            )
+                        }
+                    },
+                    scrollBehavior = scrollBehavior,
+                )
             }
         },
         floatingActionButton = {
-            var searchBarText by remember {
-                mutableStateOf(TextFieldValue())
-            }
-            LaunchedEffect(navigationScreen) {
-                coroutineScope.launch {
-                    if (searchBarVisible) {
-                        searchBarVisible = false
-                        delay(250)
-                    }
-                    fabExpanded = false
-                    searchBarText = when (navigationScreen) {
-                        NavigationScreens.BoxesScreen -> boxesSearchText
-                        NavigationScreens.ItemsScreen -> itemsSearchText
-                        else -> TextFieldValue()
-                    }
-                }
-            }
             AnimatedVisibility(
                 visible = navigationScreen in listOf(NavigationScreens.BoxesScreen, NavigationScreens.ItemsScreen) ||
                         fabVisible && navigationScreen in listOf(
@@ -274,7 +284,7 @@ private fun AppNavigationScreenContent(
                             .padding(bottom = if (keyboardVisible) 0.dp else 95.dp),
                         visible = searchBarVisible
                     ) {
-                        FloatingActionButton(
+                        Surface(
                             modifier = Modifier
                                 .padding(start = 12.dp)
                                 .padding(vertical = 12.dp)
@@ -289,8 +299,9 @@ private fun AppNavigationScreenContent(
                                         this@drawWithContent.drawContent()
                                     }
                                 },
-                            onClick = {},
-                            shape = RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp)
+                            color = FloatingActionButtonDefaults.containerColor,
+                            shape = RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp),
+                            shadowElevation = 4.dp
                         ) {
                             OutlinedTextField(
                                 modifier = Modifier.padding(6.dp),
@@ -408,7 +419,7 @@ private fun AppNavigationScreenContent(
                                                                     delay(250)
                                                                 }
                                                                 fabExpanded = false
-                                                                scannerDialogVisible = true
+                                                                cameraState.showScanner()
                                                             }
                                                         },
                                                         color = Color.Transparent,
@@ -568,6 +579,27 @@ private fun AppNavigationScreenContent(
             }
         }
     ) {
-        AppNavigationGraph(modifier = Modifier.padding(it))
+        Box {
+            AppNavigationGraph(modifier = Modifier.padding(it))
+            if (fabExpanded) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            coroutineScope.launch {
+                                if (searchBarVisible) {
+                                    searchBarVisible = false
+                                    delay(250)
+                                }
+                                fabExpanded = false
+                            }
+                        },
+                    color = Color.Transparent
+                ) {}
+            }
+        }
     }
 }
