@@ -59,4 +59,9 @@
     <string name="empty_items_query">No items found for the query</string>
     <string name="removed_from_this_box">Removed</string>
     <string name="in_this_box">In box</string>
+    <string name="item_borrow_error">Failed to take out item</string>
+    <string name="item_return_error">Failed to return item</string>
+    <string name="item_remove_error">Failed to remove item from the box</string>
+    <string name="item_add_error">Failed to add item to the box</string>
+    <string name="item_delete_box_error">Failed to delete item from box</string>
 </resources>

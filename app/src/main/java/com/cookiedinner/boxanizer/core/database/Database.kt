@@ -6,6 +6,7 @@ import com.cookiedinner.boxanizer.database.Box
 import com.cookiedinner.boxanizer.database.BoxanizerDb
 import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.database.ItemInBox
+import com.cookiedinner.boxanizer.items.models.ItemAction
 
 class Database(databaseDriverFactory: DatabaseDriverFactory) {
     private val database = BoxanizerDb(
@@ -87,7 +88,7 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
             searchQuery = query,
             databaseFunction = itemQueries::selectRemovedFromBoxes,
             comparisonField = { it.id }
-        )
+        ).distinctBy { it.id }
     }
 
     fun itemsSelectInBoxes(query: String): List<Item> {
@@ -95,7 +96,7 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
             searchQuery = query,
             databaseFunction = itemQueries::selectInBoxes,
             comparisonField = { it.id }
-        )
+        ).distinctBy { it.id }
     }
 
     fun itemsSelectNotInBoxes(query: String): List<Item> {
@@ -103,7 +104,7 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
             searchQuery = query,
             databaseFunction = itemQueries::selectNotInBoxes,
             comparisonField = { it.id }
-        )
+        ).distinctBy { it.id }
     }
 
     fun itemSelectById(id: Long): Item? {
@@ -135,6 +136,48 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
             itemQueries.delete(itemId)
             itemQueries.deleteBoxLinks(itemId)
             itemQueries.deleteTagLinks(itemId)
+        }
+    }
+
+    @Throws(Exception::class)
+    fun editItemInBox(itemId: Long, boxId: Long, action: ItemAction, item: ItemInBox) {
+        when (action) {
+            ItemAction.BORROW, ItemAction.RETURN -> {
+                if ((action == ItemAction.BORROW && item.amountRemovedFromBox == 0L) || (action == ItemAction.RETURN && item.amountRemovedFromBox == 1L)) {
+                    itemQueries.editAmountRemovedInBoxWithTimestamp(
+                        newAmount = if (action == ItemAction.BORROW) 1 else 0,
+                        newTimestamp = System.currentTimeMillis(),
+                        itemId = itemId,
+                        boxId = boxId
+                    )
+                } else {
+                    itemQueries.editAmountRemovedInBox(
+                        newAmount = item.amountRemovedFromBox + if (action == ItemAction.BORROW) 1 else -1,
+                        itemId = itemId,
+                        boxId = boxId
+                    )
+                }
+            }
+            ItemAction.ADD, ItemAction.REMOVE -> {
+                if (action == ItemAction.REMOVE) {
+                    if (item.amountInBox > 1L) {
+                        itemQueries.editAmountInBox(
+                            newAmount = item.amountInBox - 1,
+                            itemId = itemId,
+                            boxId = boxId
+                        )
+                    }
+                } else {
+                    itemQueries.editAmountInBox(
+                        newAmount = item.amountInBox + 1,
+                        itemId = itemId,
+                        boxId = boxId
+                    )
+                }
+            }
+            ItemAction.DELETE -> {
+                itemQueries.deleteFromBox(boxId, itemId)
+            }
         }
     }
 }

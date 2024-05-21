@@ -48,6 +48,7 @@ fun DeletableCard(
     padding: PaddingValues = PaddingValues(20.dp),
     onClick: () -> Unit,
     onDelete: () -> Unit,
+    onExpanded: (Boolean) -> Unit = {},
     content: @Composable RowScope.() -> Unit
 ) {
     var expanded by rememberSaveable {
@@ -84,6 +85,7 @@ fun DeletableCard(
                     .matchParentSize()
                     .clickable {
                         expanded = false
+                        onExpanded(false)
                         visible.targetState = false
                     },
                 color = MaterialTheme.colorScheme.error,
@@ -117,11 +119,14 @@ fun DeletableCard(
                             onClick = {
                                 if (!expanded)
                                     onClick()
-                                else
+                                else {
                                     expanded = false
+                                    onExpanded(false)
+                                }
                             },
                             onLongClick = {
                                 expanded = !expanded
+                                onExpanded(expanded)
                             }
                         )
                         .padding(padding),

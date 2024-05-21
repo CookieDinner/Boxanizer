@@ -1,6 +1,7 @@
 package com.cookiedinner.boxanizer.boxes.viewmodels
 
 import android.app.Application
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.lifecycle.viewModelScope
 import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.models.InputErrorType
@@ -10,9 +11,12 @@ import com.cookiedinner.boxanizer.core.utilities.safelyShowSnackbar
 import com.cookiedinner.boxanizer.core.viewmodels.ViewModelWithSnack
 import com.cookiedinner.boxanizer.database.Box
 import com.cookiedinner.boxanizer.database.ItemInBox
+import com.cookiedinner.boxanizer.items.models.ItemAction
+import com.cookiedinner.boxanizer.items.models.ItemInBoxWithTransition
 import com.cookiedinner.boxanizer.items.models.ItemListType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -35,7 +39,7 @@ class BoxDetailsViewModel(
     private val _nameError = MutableStateFlow(false)
     val nameError = _nameError.asStateFlow()
 
-    private val _items = MutableStateFlow<Map<ItemListType, List<ItemInBox>>?>(null)
+    private val _items = MutableStateFlow<Map<ItemListType, List<ItemInBoxWithTransition>>?>(null)
     val items = _items.asStateFlow()
 
     private var initialized = false
@@ -51,9 +55,11 @@ class BoxDetailsViewModel(
                         _currentBox.value = boxDetails
                         _originalCurrentBox.value = boxDetails
                     }
-                    val boxItems = if (boxId == -1L) emptyList() else dataProvider.getBoxItems(boxId)
+                    val boxItems = if (boxId == -1L) emptyMap() else dataProvider.getBoxItems(boxId)
                     withContext(Dispatchers.Main) {
-                        _items.value = boxItems.sortedBy { it.amountRemovedFromBox == 0L }.groupBy { if (it.amountRemovedFromBox > 0) ItemListType.REMOVED else ItemListType.IN_BOXES }
+                        _items.value = boxItems.mapValues {
+                            it.value.map { ItemInBoxWithTransition(it) }
+                        }
                     }
                     initialized = true
                 } catch (ex: Exception) {
@@ -101,6 +107,117 @@ class BoxDetailsViewModel(
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 snackbarHostState.safelyShowSnackbar(context.getString(R.string.box_save_error))
+            }
+        }
+    }
+
+    fun editItemInBox(itemId: Long, action: ItemAction, callback: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _items.update { map ->
+                    val itemToMove = map?.values?.flatten()?.first { it.item.id == itemId } ?: throw Exception()
+                    dataProvider.editItemInBox(itemId, _currentBox.value?.id ?: -1, action, itemToMove.item)
+                    when (action) {
+                        /**
+                         * When the item, upon taking it out of the box, has to move between sections, we initialize the exit animation, wait a moment
+                         * and then remove it from its previous section. Afterwards it gets added to the updated section with its amountRemovedFromBox changed accordingly to
+                         * the action.
+                         * When it doesn't have to move sections, we just simply increment/decrement the counter.
+                         */
+                        ItemAction.BORROW, ItemAction.RETURN -> {
+                            when {
+                                action == ItemAction.BORROW && itemToMove.item.amountRemovedFromBox == 0L -> map.mapValues {
+                                    when (it.key) {
+                                        ItemListType.IN_BOXES -> {
+                                            itemToMove.transitionState.targetState = false
+                                            delay(200)
+                                            it.value.filterNot { itemInBox -> itemInBox.item.id == itemId }
+                                        }
+
+                                        else -> listOf(
+                                            ItemInBoxWithTransition(
+                                                item = itemToMove.item.copy(amountRemovedFromBox = 1),
+                                                transitionState = MutableTransitionState(false)
+                                            )
+                                        ) + it.value
+                                    }
+                                }
+
+                                action == ItemAction.RETURN && itemToMove.item.amountRemovedFromBox == 1L -> map.mapValues {
+                                    when (it.key) {
+                                        ItemListType.REMOVED -> {
+                                            itemToMove.transitionState.targetState = false
+                                            delay(200)
+                                            it.value.filterNot { itemInBox -> itemInBox.item.id == itemId }
+                                        }
+
+                                        else -> listOf(
+                                            ItemInBoxWithTransition(
+                                                item = itemToMove.item.copy(amountRemovedFromBox = 0),
+                                                transitionState = MutableTransitionState(false)
+                                            )
+                                        ) + it.value
+                                    }
+                                }
+
+                                else -> map.mapValues {
+                                    it.value.map { itemInBox ->
+                                        if (itemInBox.item.id == itemId) {
+                                            itemInBox.copy(
+                                                item = itemInBox.item.copy(
+                                                    amountRemovedFromBox = itemInBox.item.amountRemovedFromBox + when (action) {
+                                                        ItemAction.BORROW -> 1
+                                                        else -> -1
+                                                    }
+                                                )
+                                            )
+                                        } else
+                                            itemInBox
+                                    }
+                                }
+                            }
+                        }
+                        ItemAction.ADD, ItemAction.REMOVE -> {
+                            if (action == ItemAction.REMOVE && itemToMove.item.amountInBox == 1L) {
+                                map
+                            } else {
+                                map.mapValues {
+                                    it.value.map { itemInBox ->
+                                        if (itemInBox.item.id == itemId) {
+                                            itemInBox.copy(
+                                                item = itemInBox.item.copy(
+                                                    amountInBox = itemInBox.item.amountInBox + when (action) {
+                                                        ItemAction.ADD -> 1
+                                                        else -> -1
+                                                    }
+                                                )
+                                            )
+                                        } else
+                                            itemInBox
+                                    }
+                                }
+                            }
+                        }
+                        ItemAction.DELETE -> {
+                            map.mapValues {
+                                it.value.filterNot { it.item.id == itemId }
+                            }
+                        }
+                    }
+                }
+                callback()
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                callback()
+                snackbarHostState.safelyShowSnackbar(
+                    when (action) {
+                        ItemAction.BORROW -> context.getString(R.string.item_borrow_error)
+                        ItemAction.RETURN -> context.getString(R.string.item_return_error)
+                        ItemAction.REMOVE -> context.getString(R.string.item_remove_error)
+                        ItemAction.ADD -> context.getString(R.string.item_add_error)
+                        ItemAction.DELETE -> context.getString(R.string.item_delete_box_error)
+                    }
+                )
             }
         }
     }

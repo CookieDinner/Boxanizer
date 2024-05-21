@@ -1,22 +1,13 @@
 package com.cookiedinner.boxanizer.items.components
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -24,44 +15,39 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Forward
-import androidx.compose.material.icons.automirrored.filled.KeyboardReturn
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.NorthEast
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.RemoveCircleOutline
-import androidx.compose.material.icons.filled.SouthWest
+import androidx.compose.material.icons.filled.SubdirectoryArrowLeft
+import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
 import com.cookiedinner.boxanizer.R
+import com.cookiedinner.boxanizer.core.components.AnimatedCounter
 import com.cookiedinner.boxanizer.core.components.DeletableCard
-import com.cookiedinner.boxanizer.core.models.Digit
-import com.cookiedinner.boxanizer.core.models.compareTo
+import com.cookiedinner.boxanizer.core.models.Direction
 import com.cookiedinner.boxanizer.core.utilities.trimNewLines
 import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.database.ItemInBox
@@ -88,16 +74,24 @@ fun ItemComponent(
     itemInBox: ItemInBox,
     onClick: () -> Unit,
     onDelete: () -> Unit,
-    onAdded: () -> Unit,
-    onRemoved: () -> Unit,
-    onBorrowed: () -> Unit,
-    onReturned: () -> Unit
+    onBorrowed: (() -> Unit) -> Unit,
+    onReturned: (() -> Unit) -> Unit,
+    onAdded: (() -> Unit) -> Unit,
+    onRemoved: (() -> Unit) -> Unit
 ) {
+    var interactable by remember {
+        mutableStateOf(true)
+    }
+    var cardExpanded by remember {
+        mutableStateOf(false)
+    }
     DeletableCard(
         modifier = modifier,
-        padding = PaddingValues(4.dp),
         onClick = onClick,
-        onDelete = onDelete
+        onDelete = onDelete,
+        onExpanded = {
+            cardExpanded = it
+        }
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -112,80 +106,89 @@ fun ItemComponent(
                     image = itemInBox.image
                 )
             )
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+            Row(
+                verticalAlignment = Alignment.Bottom
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    var more by remember {
-                        mutableLongStateOf(itemInBox.amountRemovedFromBox)
-                    }
-                    FilledIconButton(
-                        onClick = { more-- },
-                        enabled = more > 0,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors()
-                    ) {
-                        Icon(imageVector = Icons.Default.SouthWest, contentDescription = "")
-                    }
-                    Row(
-                        modifier = Modifier
-                            .animateContentSize()
-                            .padding(horizontal = 8.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        more.toString()
-                            .mapIndexed { index, char -> Digit(char, more, index) }
-                            .forEach { listDigit ->
-                                AnimatedContent(
-                                    targetState = listDigit,
-                                    transitionSpec = {
-                                        if (targetState > initialState) {
-                                            slideInVertically { -it } + fadeIn() togetherWith slideOutVertically { it } + fadeOut()
-                                        } else {
-                                            slideInVertically { it } + fadeIn() togetherWith slideOutVertically { -it } + fadeOut()
-                                        }
-                                    }
-                                ) { digit ->
-                                    Text(
-                                        modifier = Modifier.defaultMinSize(minWidth = 12.dp),
-                                        text = digit.digitChar.toString(),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
+                FilledIconButton(
+                    onClick = {
+                        interactable = false
+                        if (cardExpanded) {
+                            onRemoved {
+                                interactable = true
                             }
+                        } else {
+                            onReturned {
+                                interactable = true
+                            }
+                        }
+                    },
+                    enabled = interactable && if (cardExpanded)
+                        itemInBox.amountInBox > 1 && itemInBox.amountInBox > itemInBox.amountRemovedFromBox
+                     else
+                        itemInBox.amountRemovedFromBox > 0,
+                    colors = IconButtonDefaults.filledTonalIconButtonColors()
+                ) {
+                    Icon(
+                        modifier = Modifier.rotate(if (cardExpanded) 0f else 90f),
+                        imageVector = if (cardExpanded) Icons.Default.Remove else Icons.Default.SubdirectoryArrowRight,
+                        contentDescription = ""
+                    )
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    AnimatedVisibility(visible = itemInBox.amountRemovedFromBox > 0) {
+                        Icon(
+                            modifier = Modifier
+                                .padding(start = 14.dp, bottom = 12.dp)
+                                .rotate(180f),
+                            imageVector = Icons.Default.SubdirectoryArrowLeft,
+                            contentDescription = ""
+                        )
                     }
-                    FilledIconButton(
-                        onClick = { more++ },
-                        enabled = more < itemInBox.amountInBox,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors()
-                    ) {
-                        Icon(imageVector = Icons.Default.NorthEast, contentDescription = "")
+                    Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                        AnimatedCounter(
+                            modifier = Modifier
+                                .padding(horizontal = 14.dp)
+                                .defaultMinSize(minWidth = (9 * itemInBox.amountInBox.toString().length).dp, minHeight = 36.dp),
+                            number = itemInBox.amountInBox - itemInBox.amountRemovedFromBox,
+                            incrementDirection = Direction.DOWN
+                        )
                     }
                 }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    FilledIconButton(
-                        onClick = { /*TODO*/ },
-                        colors = IconButtonDefaults.filledTonalIconButtonColors()
-                    ) {
-                        Icon(imageVector = Icons.Default.Remove, contentDescription = "")
+                    AnimatedVisibility(visible = itemInBox.amountRemovedFromBox > 0) {
+                        AnimatedCounter(
+                            modifier = Modifier
+                                .padding(bottom = 12.dp)
+                                .defaultMinSize(minWidth = 24.dp, minHeight = 12.dp),
+                            number = itemInBox.amountRemovedFromBox,
+                            incrementDirection = Direction.RIGHT
+                        )
                     }
-                    Text(
-                        modifier = Modifier
-                            .defaultMinSize(minWidth = 12.dp)
-                            .padding(horizontal = 8.dp),
-                        text = itemInBox.amountInBox.toString(),
-                        style = MaterialTheme.typography.labelLarge
-                    )
                     FilledIconButton(
-                        onClick = { /*TODO*/ },
+                        onClick = {
+                            interactable = false
+                            if (cardExpanded) {
+                                onAdded {
+                                    interactable = true
+                                }
+                            } else {
+                                onBorrowed {
+                                    interactable = true
+                                }
+                            }
+                        },
+                        enabled = interactable && (cardExpanded || itemInBox.amountRemovedFromBox < itemInBox.amountInBox),
                         colors = IconButtonDefaults.filledTonalIconButtonColors()
                     ) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "")
+                        Icon(
+                            imageVector = if (cardExpanded) Icons.Default.Add else Icons.Default.NorthEast,
+                            contentDescription = ""
+                        )
                     }
                 }
             }
@@ -195,7 +198,9 @@ fun ItemComponent(
 
 @Composable
 private fun ItemContent(item: Item) {
-    Row {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         var hasImage by remember {
             mutableStateOf(false)
         }
@@ -240,12 +245,7 @@ private fun ItemContent(item: Item) {
             },
             contentDescription = stringResource(R.string.box_picture)
         )
-        Column(
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceAround
-        ) {
+        Column(modifier = Modifier.padding(start = 16.dp)) {
             Text(
                 text = item.name,
                 style = MaterialTheme.typography.titleMedium

@@ -57,11 +57,11 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
 import com.cookiedinner.boxanizer.R
+import com.cookiedinner.boxanizer.core.components.CameraComponentDefaults
 import com.cookiedinner.boxanizer.core.components.CameraDialog
 import com.cookiedinner.boxanizer.core.components.CameraImage
-import com.cookiedinner.boxanizer.core.components.CameraPhotoPhase
-import com.cookiedinner.boxanizer.core.components.CameraType
 import com.cookiedinner.boxanizer.core.models.SharedActions
+import com.cookiedinner.boxanizer.core.models.rememberCameraDialogState
 import com.cookiedinner.boxanizer.core.navigation.Navigator
 import com.cookiedinner.boxanizer.core.utilities.FlowObserver
 import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
@@ -118,49 +118,21 @@ private fun ItemDetailsScreenContent(
     editItem: (Item?) -> Unit,
     nameError: Boolean
 ) {
-    var cameraDialogVisible by rememberSaveable {
-        mutableStateOf(false)
-    }
-    var photoLoading by remember {
-        mutableStateOf(false)
-    }
+    val cameraState = rememberCameraDialogState()
 
     CameraDialog(
-        visible = cameraDialogVisible,
-        onDismissRequest = { cameraDialogVisible = false },
-        takePhoto = { phase, byteArray ->
-            when (phase) {
-                CameraPhotoPhase.TAKING -> {
-                    cameraDialogVisible = false
-                    photoLoading = true
-                }
-
-                CameraPhotoPhase.DONE -> {
-                    if (byteArray != null) {
-                        editItem(
-                            item?.copy(
-                                image = byteArray
-                            )
-                        )
-                    }
-                    photoLoading = false
-                }
-
-                CameraPhotoPhase.ERROR -> {
-                    photoLoading = false
-                }
+        state = cameraState,
+        takePhoto = { byteArray ->
+            if (byteArray != null) {
+                editItem(
+                    item?.copy(
+                        image = byteArray
+                    )
+                )
             }
         },
         overlay = {
-            Box {
-                Column(
-                    modifier = Modifier.height(180.dp),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    HorizontalDivider()
-                    HorizontalDivider()
-                }
-            }
+            CameraComponentDefaults.Overlay()
         }
     )
 
@@ -181,9 +153,9 @@ private fun ItemDetailsScreenContent(
             item {
                 CameraImage(
                     image = item?.image,
-                    photoLoading = photoLoading || item == null,
+                    photoLoading = cameraState.takingPhoto || item == null,
                     onEditImage = {
-                        cameraDialogVisible = true
+                        cameraState.showPhoto()
                     },
                     onDeleteImage = {
                         editItem(

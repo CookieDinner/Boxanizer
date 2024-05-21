@@ -5,6 +5,7 @@ import com.cookiedinner.boxanizer.core.database.DatabaseDriverFactory
 import com.cookiedinner.boxanizer.database.Box
 import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.database.ItemInBox
+import com.cookiedinner.boxanizer.items.models.ItemAction
 import com.cookiedinner.boxanizer.items.models.ItemListType
 
 class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
@@ -26,8 +27,14 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
     }
 
     @Throws(Exception::class)
-    fun getBoxItems(boxId: Long): List<ItemInBox> {
-        return database.itemsSelectByBoxId(boxId)
+    fun getBoxItems(boxId: Long): Map<ItemListType, List<ItemInBox>> {
+        val emptyItemsMap = mapOf<ItemListType, List<ItemInBox>>(
+            ItemListType.REMOVED to emptyList(),
+            ItemListType.IN_BOXES to emptyList()
+        )
+        return emptyItemsMap + database.itemsSelectByBoxId(boxId)
+            .sortedWith(compareBy<ItemInBox> { it.amountRemovedFromBox == 0L }.thenByDescending { it.lastTimeMovedSections })
+            .groupBy { if (it.amountRemovedFromBox > 0) ItemListType.REMOVED else ItemListType.IN_BOXES }
     }
 
     @Throws(Exception::class)
@@ -47,10 +54,13 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
 
     @Throws(Exception::class)
     fun getItems(query: String): Map<ItemListType, List<Item>> {
+        val removed = database.itemsSelectRemovedFromBoxes(query)
+        val inBoxes = database.itemsSelectInBoxes(query).filterNot { item -> removed.any { it.id == item.id } }
+        val remaining = database.itemsSelectNotInBoxes(query).filterNot { item -> inBoxes.any { it.id == item.id } }
         return mapOf(
-            ItemListType.REMOVED to database.itemsSelectRemovedFromBoxes(query),
-            ItemListType.IN_BOXES to database.itemsSelectInBoxes(query),
-            ItemListType.REMAINING to database.itemsSelectNotInBoxes(query)
+            ItemListType.REMOVED to removed,
+            ItemListType.IN_BOXES to inBoxes,
+            ItemListType.REMAINING to remaining
         )
     }
 
@@ -62,5 +72,15 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
     @Throws(Exception::class)
     fun deleteItem(itemId: Long) {
         database.deleteItem(itemId)
+    }
+
+    @Throws(Exception::class)
+    fun editItemInBox(
+        itemId: Long,
+        boxId: Long,
+        action: ItemAction,
+        item: ItemInBox
+    ) {
+        database.editItemInBox(itemId, boxId, action, item)
     }
 }

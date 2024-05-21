@@ -91,10 +91,7 @@ fun BoxComponent(
             contentDescription = stringResource(R.string.box_picture)
         )
         Column(
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceAround
+            modifier = Modifier.padding(start = 16.dp)
         ) {
             Text(
                 text = box.name,
