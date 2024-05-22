@@ -3,12 +3,15 @@ package com.cookiedinner.boxanizer.settings.screens
 import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +42,7 @@ fun SettingsScreen(
 
     val dynamicTheme = dataStoreManager.collectDynamicThemeWithLifecycle()
     val currentTheme = dataStoreManager.collectThemeWithLifecycle()
+    val barcodeTypes = dataStoreManager.collectBarcodeTypesWithLifecycle()
 
     SettingsScreenContent(
         currentTheme = currentTheme.value,
@@ -57,6 +61,12 @@ fun SettingsScreen(
             coroutineScope.launch {
                 dataStoreManager.switchLanguage(it)
             }
+        },
+        supportedBarcodes = barcodeTypes.value,
+        onSupportedBarcodesChanged = {
+            coroutineScope.launch {
+                dataStoreManager.changeBarcodeTypes(it)
+            }
         }
     )
 }
@@ -67,7 +77,9 @@ private fun SettingsScreenContent(
     onThemeChoice: (DataStoreManager.ThemeChoice) -> Unit,
     dynamicTheme: Boolean,
     onDynamicThemeClick: (Boolean) -> Unit,
-    onLanguageClick: (DataStoreManager.LanguageChoice) -> Unit
+    onLanguageClick: (DataStoreManager.LanguageChoice) -> Unit,
+    supportedBarcodes: Set<DataStoreManager.BarcodeTypes>,
+    onSupportedBarcodesChanged: (Set<DataStoreManager.BarcodeTypes>?) -> Unit
 ) {
     val context = LocalContext.current
     LazyColumn(
@@ -162,6 +174,66 @@ private fun SettingsScreenContent(
                     }
                 }
             }
+            PreferenceGroup(title = stringResource(R.string.functionalities)) {
+                Box(contentAlignment = Alignment.TopEnd) {
+                    var barcodeDropdownVisible by remember {
+                        mutableStateOf(false)
+                    }
+                    TextPreference(
+                        title = stringResource(R.string.pref_barcodes),
+                        description = when {
+                            else -> supportedBarcodes.joinToString { it.type }
+                        }
+                    ) {
+                        barcodeDropdownVisible = true
+                    }
+                    Box {
+                        DropdownMenu(
+                            modifier = Modifier.fillMaxWidth(0.5f),
+                            expanded = barcodeDropdownVisible,
+                            onDismissRequest = { barcodeDropdownVisible = false }
+                        ) {
+                            DataStoreManager.BarcodeTypes.entries.forEach { barcodeType ->
+                                val onChecked = {
+                                    onSupportedBarcodesChanged(
+                                        if (supportedBarcodes.contains(barcodeType)) {
+                                            if (supportedBarcodes.size == 1) {
+                                                null
+                                            } else {
+                                                (supportedBarcodes.filterNot { it == barcodeType }).toSet()
+                                            }
+                                        } else
+                                            (supportedBarcodes + barcodeType).toSet()
+                                    )
+                                }
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(6.dp),
+                                                text = barcodeType.type
+                                            )
+                                            Checkbox(
+                                                checked = supportedBarcodes.contains(barcodeType),
+                                                onCheckedChange = {
+                                                    onChecked()
+                                                }
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        onChecked()
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
             PreferenceGroup(title = stringResource(R.string.about)) {
                 TextPreference(
                     title = stringResource(R.string.app_version),
@@ -170,7 +242,7 @@ private fun SettingsScreenContent(
                 TextPreference(
                     title = stringResource(R.string.check_for_updates)
                 ) {
-
+                    // TODO Github updates
                 }
             }
         }

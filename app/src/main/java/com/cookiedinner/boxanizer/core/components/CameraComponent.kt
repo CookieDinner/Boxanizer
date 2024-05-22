@@ -69,6 +69,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.cookiedinner.boxanizer.core.data.DataStoreManager
 import com.cookiedinner.boxanizer.core.models.CameraDialogState
 import com.cookiedinner.boxanizer.core.models.CameraPhotoPhase
 import com.cookiedinner.boxanizer.core.models.CameraType
@@ -79,6 +80,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
 
@@ -120,9 +122,11 @@ fun CameraDialog(
     state: CameraDialogState,
     onScanned: (String) -> Unit = {},
     takePhoto: (ByteArray?) -> Unit = {},
+    dataStoreManager: DataStoreManager = koinInject(),
     overlay: @Composable BoxScope.() -> Unit = {}
 ) {
     val orientation = LocalConfiguration.current.orientation
+    val scannableBarcodes = dataStoreManager.collectBarcodeTypesWithLifecycle()
 
     var canScan by remember {
         mutableStateOf(true)
@@ -176,6 +180,7 @@ fun CameraDialog(
                                             canScan = false
                                             onScanned(it)
                                         },
+                                        scannableBarcodes = scannableBarcodes.value,
                                         canScan = canScan
                                     )
                                 } else null,

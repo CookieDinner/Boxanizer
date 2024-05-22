@@ -65,4 +65,6 @@
     <string name="item_add_error">Nie udało się usunąć przedmiotu z pudełka</string>
     <string name="item_delete_box_error">Nie udało się kompletnie usunąć przedmiotu z pudełka</string>
     <string name="removed_from">Wyjęty z</string>
+    <string name="functionalities">FUNKCJONALNOŚCI</string>
+    <string name="pref_barcodes">Kody kreskowe możliwe do skanowania</string>
 </resources>
