@@ -48,9 +48,9 @@
     <string name="box_delete_error">Nie udało się usunąć pudełka</string>
     <string name="delete">Usuń</string>
     <string name="item_delete_error">Nie udało się usunąć przedmiotu</string>
-    <string name="removed_from_boxes">Wyciągnięte z pudełek</string>
+    <string name="removed_from_boxes">Wyjęte z pudełek</string>
     <string name="in_boxes">W pudełkach</string>
-    <string name="not_in_any_boxes">Nie będące w żadnych pudełkach</string>
+    <string name="not_in_any_boxes">W żadnych pudełkach</string>
     <string name="search">Wyszukaj...</string>
     <string name="edit_search">Edytuj frazę wyszukiwania</string>
     <string name="search2">Wyszukaj</string>
@@ -64,4 +64,5 @@
     <string name="item_remove_error">Nie udało się dodać przedmiotu do pudełka</string>
     <string name="item_add_error">Nie udało się usunąć przedmiotu z pudełka</string>
     <string name="item_delete_box_error">Nie udało się kompletnie usunąć przedmiotu z pudełka</string>
+    <string name="removed_from">Wyjęty z</string>
 </resources>

@@ -201,16 +201,13 @@ private fun ItemContent(item: Item) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        var hasImage by remember {
-            mutableStateOf(false)
-        }
         SubcomposeAsyncImage(
             modifier = Modifier
                 .heightIn(0.dp, 48.dp)
                 .width(48.dp)
                 .clip(MaterialTheme.shapes.extraSmall)
                 .then(
-                    if (hasImage)
+                    if (item.image != null)
                         Modifier.border(
                             border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline),
                             shape = MaterialTheme.shapes.extraSmall
@@ -224,9 +221,6 @@ private fun ItemContent(item: Item) {
                 .size(Size.ORIGINAL)
                 .build(),
             contentScale = ContentScale.FillBounds,
-            onSuccess = {
-                hasImage = true
-            },
             error = {
                 Icon(
                     modifier = Modifier.size(28.dp),

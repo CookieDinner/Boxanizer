@@ -45,9 +45,9 @@ class BoxDetailsViewModel(
     private var initialized = false
 
     fun getBoxDetails(boxId: Long) {
-        if (!initialized) {
-            viewModelScope.launch(Dispatchers.IO) {
-                try {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (!initialized) {
                     val boxDetails = if (boxId == -1L) emptyBox else dataProvider.getBoxDetails(boxId)
                     withContext(Dispatchers.Main) {
                         _codeError.value = InputErrorType.NONE
@@ -55,17 +55,17 @@ class BoxDetailsViewModel(
                         _currentBox.value = boxDetails
                         _originalCurrentBox.value = boxDetails
                     }
-                    val boxItems = if (boxId == -1L) emptyMap() else dataProvider.getBoxItems(boxId)
-                    withContext(Dispatchers.Main) {
-                        _items.value = boxItems.mapValues {
-                            it.value.map { ItemInBoxWithTransition(it) }
-                        }
-                    }
-                    initialized = true
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                    snackbarHostState.safelyShowSnackbar(context.getString(R.string.box_details_error))
                 }
+                val boxItems = if (boxId == -1L) emptyMap() else dataProvider.getBoxItems(boxId)
+                withContext(Dispatchers.Main) {
+                    _items.value = boxItems.mapValues {
+                        it.value.map { ItemInBoxWithTransition(it) }
+                    }
+                }
+                initialized = true
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                snackbarHostState.safelyShowSnackbar(context.getString(R.string.box_details_error))
             }
         }
     }

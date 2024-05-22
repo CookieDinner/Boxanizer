@@ -35,6 +35,11 @@ class Navigator {
         }
     }
 
+    fun navigateToDeeperScreen(route: String) {
+        navController?.popBackStack()
+        navController?.navigate(route)
+    }
+
     fun popBackStack() {
         navController?.popBackStack()
     }

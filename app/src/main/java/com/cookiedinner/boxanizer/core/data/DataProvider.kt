@@ -1,8 +1,10 @@
 package com.cookiedinner.boxanizer.core.data
 
+import com.cookiedinner.boxanizer.boxes.models.BoxListType
 import com.cookiedinner.boxanizer.core.database.Database
 import com.cookiedinner.boxanizer.core.database.DatabaseDriverFactory
 import com.cookiedinner.boxanizer.database.Box
+import com.cookiedinner.boxanizer.database.BoxWithItem
 import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.database.ItemInBox
 import com.cookiedinner.boxanizer.items.models.ItemAction
@@ -82,5 +84,16 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
         item: ItemInBox
     ) {
         database.editItemInBox(itemId, boxId, action, item)
+    }
+
+    @Throws(Exception::class)
+    fun getBoxesForItem(itemId: Long): Map<BoxListType, List<BoxWithItem>> {
+        val emptyMap = mapOf<BoxListType, List<BoxWithItem>>(
+            BoxListType.REMOVED_FROM to emptyList(),
+            BoxListType.INSIDE to emptyList()
+        )
+        return emptyMap + database.boxesSelectByItemId(itemId)
+            .sortedWith(compareBy<BoxWithItem> { it.amountRemovedFromBox == 0L }.thenByDescending { it.lastTimeMovedSections })
+            .groupBy { if (it.amountRemovedFromBox > 0) BoxListType.REMOVED_FROM else BoxListType.INSIDE }
     }
 }

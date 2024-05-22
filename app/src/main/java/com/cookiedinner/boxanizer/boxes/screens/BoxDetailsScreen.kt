@@ -122,7 +122,7 @@ fun BoxDetailsScreen(
         nameError = nameError.value,
         onItemEdited = viewModel::editItemInBox,
         onItemClick = {
-            navigator.navigateToScreen("${NavigationScreens.ItemDetailsScreen.route}?itemId=$it")
+            navigator.navigateToDeeperScreen("${NavigationScreens.ItemDetailsScreen.route}?itemId=$it")
         }
     )
 }
@@ -325,7 +325,7 @@ private fun BoxDetailsScreenContent(
                             ) {
                                 ItemComponent(
                                     modifier = Modifier
-                                        .padding(top = if (index == 0) 12.dp else 0.dp)
+                                        .padding(top = if (index == 0) 6.dp else 0.dp)
                                         .padding(horizontal = 3.dp),
                                     itemInBox = it.item,
                                     onClick = {

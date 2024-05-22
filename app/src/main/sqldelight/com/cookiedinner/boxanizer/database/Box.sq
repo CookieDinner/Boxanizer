@@ -34,3 +34,8 @@ DELETE FROM Box WHERE id = :id;
 
 deleteItemLinks:
 DELETE FROM BoxItem WHERE boxId = :id;
+
+boxWithItem:
+SELECT * FROM Box
+INNER JOIN BoxItem ON Box.id = BoxItem.boxId
+WHERE BoxItem.itemId = :itemId;

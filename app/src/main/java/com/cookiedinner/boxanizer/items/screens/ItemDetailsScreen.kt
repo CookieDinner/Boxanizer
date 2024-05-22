@@ -8,6 +8,8 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +22,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -57,17 +61,22 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
 import com.cookiedinner.boxanizer.R
+import com.cookiedinner.boxanizer.boxes.components.BoxComponent
+import com.cookiedinner.boxanizer.boxes.models.BoxListType
 import com.cookiedinner.boxanizer.core.components.CameraComponentDefaults
 import com.cookiedinner.boxanizer.core.components.CameraDialog
 import com.cookiedinner.boxanizer.core.components.CameraImage
 import com.cookiedinner.boxanizer.core.models.SharedActions
 import com.cookiedinner.boxanizer.core.models.rememberCameraDialogState
+import com.cookiedinner.boxanizer.core.navigation.NavigationScreens
 import com.cookiedinner.boxanizer.core.navigation.Navigator
 import com.cookiedinner.boxanizer.core.utilities.FlowObserver
 import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
 import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
 import com.cookiedinner.boxanizer.database.Box
+import com.cookiedinner.boxanizer.database.BoxWithItem
 import com.cookiedinner.boxanizer.database.Item
+import com.cookiedinner.boxanizer.items.models.ItemListType
 import com.cookiedinner.boxanizer.items.viewmodels.ItemDetailsViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -83,6 +92,8 @@ fun ItemDetailsScreen(
     val originalItem = viewModel.originalCurrentItem.collectAsStateWithLifecycle()
 
     val nameError = viewModel.nameError.collectAsStateWithLifecycle()
+
+    val boxes = viewModel.boxes.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.setSnackbarHost(mainViewModel.snackbarHostState)
@@ -103,20 +114,25 @@ fun ItemDetailsScreen(
 
     ItemDetailsScreenContent(
         item = currentItem.value,
-        boxes = listOf(), //TODO: boxes
+        boxes = boxes.value,
         editItem = {
             viewModel.editCurrentItem(it)
         },
-        nameError = nameError.value
+        nameError = nameError.value,
+        onBoxClick = {
+            navigator.navigateToDeeperScreen("${NavigationScreens.BoxDetailsScreen.route}?boxId=$it")
+        }
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ItemDetailsScreenContent(
     item: Item?,
-    boxes: List<Box>,
+    boxes: Map<BoxListType, List<BoxWithItem>>?,
     editItem: (Item?) -> Unit,
-    nameError: Boolean
+    nameError: Boolean,
+    onBoxClick: (Long) -> Unit
 ) {
     val cameraState = rememberCameraDialogState()
 
@@ -209,6 +225,46 @@ private fun ItemDetailsScreenContent(
                         )
                     }
                 )
+            }
+            boxes?.forEach { boxGroup ->
+                if (boxGroup.value.isNotEmpty()) {
+                    stickyHeader(
+                        key = "${boxGroup.key.name}_header"
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.background)
+                                .padding(top = 8.dp)
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(vertical = 12.dp),
+                                text = when (boxGroup.key) {
+                                    BoxListType.REMOVED_FROM -> stringResource(R.string.removed_from)
+                                    else -> stringResource(R.string.in_boxes)
+                                },
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            HorizontalDivider()
+                        }
+                    }
+                    itemsIndexed(
+                        items = boxGroup.value,
+                        key = { _, it ->
+                            it.id
+                        }
+                    ) { index, it ->
+                        BoxComponent(
+                            modifier = Modifier
+                                .padding(top = if (index == 0) 6.dp else 0.dp)
+                                .padding(horizontal = 3.dp),
+                            boxWithItem = it,
+                            onClick = {
+                                onBoxClick(it.id)
+                            }
+                        )
+                    }
+                }
             }
         }
     }

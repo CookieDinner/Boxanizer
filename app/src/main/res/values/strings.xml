@@ -64,4 +64,5 @@
     <string name="item_remove_error">Failed to remove item from the box</string>
     <string name="item_add_error">Failed to add item to the box</string>
     <string name="item_delete_box_error">Failed to delete item from box</string>
+    <string name="removed_from">Removed from</string>
 </resources>

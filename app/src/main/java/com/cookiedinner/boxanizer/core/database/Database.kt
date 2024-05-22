@@ -3,6 +3,7 @@ package com.cookiedinner.boxanizer.core.database
 import android.util.Log
 import app.cash.sqldelight.Query
 import com.cookiedinner.boxanizer.database.Box
+import com.cookiedinner.boxanizer.database.BoxWithItem
 import com.cookiedinner.boxanizer.database.BoxanizerDb
 import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.database.ItemInBox
@@ -113,6 +114,10 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
 
     fun itemsSelectByBoxId(boxId: Long): List<ItemInBox> {
         return itemQueries.itemInBox(boxId).executeAsList()
+    }
+
+    fun boxesSelectByItemId(itemId: Long): List<BoxWithItem> {
+        return boxQueries.boxWithItem(itemId).executeAsList()
     }
 
     @Throws(Exception::class)
