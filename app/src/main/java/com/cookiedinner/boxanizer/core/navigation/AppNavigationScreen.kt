@@ -95,6 +95,7 @@ import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.components.CameraDialog
 import com.cookiedinner.boxanizer.core.components.keyboardAsState
 import com.cookiedinner.boxanizer.core.models.BottomNavItem
+import com.cookiedinner.boxanizer.core.models.CameraDialogState
 import com.cookiedinner.boxanizer.core.models.SearchType
 import com.cookiedinner.boxanizer.core.models.SharedActions
 import com.cookiedinner.boxanizer.core.models.rememberCameraDialogState
@@ -116,6 +117,8 @@ fun AppNavigationScreen(
     val fabVisible = viewModel.fabVisible.collectAsStateWithLifecycle()
     val bottomBarVisible = viewModel.bottomBarVisible.collectAsStateWithLifecycle()
 
+    val cameraState = rememberCameraDialogState()
+
     AppNavigationScreenContent(
         currentRoute = backStackEntry.value?.destination?.route,
         fabVisible = fabVisible.value,
@@ -132,7 +135,18 @@ fun AppNavigationScreen(
         },
         boxesSearchText = viewModel.rawBoxesSearchText,
         itemsSearchText = viewModel.rawItemsSearchText,
-        editSearchText = viewModel::editSearch
+        cameraState = cameraState,
+        editSearchText = viewModel::editSearch,
+        onScannedCode = { code ->
+            viewModel.findBoxIdByCode(code) {
+                if (it != null) {
+                    cameraState.hide()
+                    navigator.navigateToScreen("${NavigationScreens.BoxDetailsScreen.route}?boxId=$it")
+                } else {
+                    cameraState.rearmScanner()
+                }
+            }
+        }
     )
 }
 
@@ -150,7 +164,9 @@ private fun AppNavigationScreenContent(
     snackbar: @Composable () -> Unit,
     boxesSearchText: TextFieldValue,
     itemsSearchText: TextFieldValue,
-    editSearchText: (SearchType, TextFieldValue) -> Unit
+    cameraState: CameraDialogState,
+    editSearchText: (SearchType, TextFieldValue) -> Unit,
+    onScannedCode: (String) -> Unit
 ) {
     val bottomNavItems = listOf(
         BottomNavItem(
@@ -185,7 +201,6 @@ private fun AppNavigationScreenContent(
         mutableStateOf(false)
     }
 
-    val cameraState = rememberCameraDialogState()
     var searchBarText by remember {
         mutableStateOf(TextFieldValue())
     }
@@ -221,9 +236,7 @@ private fun AppNavigationScreenContent(
 
     CameraDialog(
         state = cameraState,
-        onScanned = { code ->
-            // TODO Check the scanned code and move to found box
-        }
+        onScanned = onScannedCode
     )
 
     Scaffold(

@@ -22,6 +22,7 @@ class CameraDialogState(
     var visible by mutableStateOf(false)
     var type by mutableStateOf(initialCameraType)
     var takingPhoto by mutableStateOf(false)
+    var scannerFlag by mutableStateOf(false)
 
     fun showPhoto() {
         type = CameraType.PHOTO
@@ -40,6 +41,10 @@ class CameraDialogState(
 
     fun hide() {
         visible = false
+    }
+
+    fun rearmScanner() {
+        scannerFlag = !scannerFlag
     }
 }
 

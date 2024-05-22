@@ -3,6 +3,7 @@ package com.cookiedinner.boxanizer.core.components
 import android.Manifest
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.util.Log
 import android.view.KeyEvent
 import android.widget.LinearLayout
 import androidx.camera.core.CameraSelector
@@ -67,13 +68,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cookiedinner.boxanizer.core.models.CameraDialogState
 import com.cookiedinner.boxanizer.core.models.CameraPhotoPhase
 import com.cookiedinner.boxanizer.core.models.CameraType
 import com.cookiedinner.boxanizer.core.utilities.BarcodeAnalyzer
+import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
+import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import org.koin.androidx.compose.koinViewModel
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
 
@@ -118,6 +123,15 @@ fun CameraDialog(
     overlay: @Composable BoxScope.() -> Unit = {}
 ) {
     val orientation = LocalConfiguration.current.orientation
+
+    var canScan by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(state.visible, state.scannerFlag) {
+        if (state.visible)
+            canScan = true
+    }
     AnimatedVisibility(
         visible = state.visible,
         enter = fadeIn(tween(50)),
@@ -159,9 +173,10 @@ fun CameraDialog(
                                 imageAnalyzer = if (state.type == CameraType.SCANNER) {
                                     BarcodeAnalyzer(
                                         barcodeListener = {
-                                            state.hide()
+                                            canScan = false
                                             onScanned(it)
-                                        }
+                                        },
+                                        canScan = canScan
                                     )
                                 } else null,
                                 takePhoto = if (state.type == CameraType.PHOTO) {

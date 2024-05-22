@@ -143,6 +143,7 @@ private fun BoxDetailsScreenContent(
     CameraDialog(
         state = cameraState,
         onScanned = { code ->
+            cameraState.hide()
             editBox(
                 box?.copy(
                     code = code

@@ -1,11 +1,18 @@
 package com.cookiedinner.boxanizer.core.viewmodels
 
+import android.app.Application
+import android.util.Log
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cookiedinner.boxanizer.R
+import com.cookiedinner.boxanizer.core.data.DataProvider
 import com.cookiedinner.boxanizer.core.models.SearchType
 import com.cookiedinner.boxanizer.core.models.SharedActions
+import com.cookiedinner.boxanizer.core.utilities.BarcodeAnalyzer
+import com.cookiedinner.boxanizer.core.utilities.safelyShowSnackbar
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -13,8 +20,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class MainViewModel : ViewModel() {
+class MainViewModel(
+    private val context: Application,
+    private val dataProvider: DataProvider
+) : ViewModel() {
     private val _fabVisible = MutableStateFlow(true)
     val fabVisible = _fabVisible.asStateFlow()
 
@@ -64,6 +75,19 @@ class MainViewModel : ViewModel() {
                     delay(300)
                     _itemsSearchText.value = newText.text
                 }
+            }
+        }
+    }
+
+    fun findBoxIdByCode(code: String, callback: (Long?) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val foundBox = dataProvider.getBoxByCode(code)
+                withContext(Dispatchers.Main) {
+                    callback(foundBox?.id)
+                }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
             }
         }
     }

@@ -18,7 +18,7 @@ val appModule = module {
     single { DataStoreManager(androidApplication()) }
     single { Navigator() }
 
-    viewModel { MainViewModel() }
+    viewModel { MainViewModel(get(), get()) }
 
     viewModel { BoxesViewModel(get(), get()) }
     viewModel { BoxDetailsViewModel(get(), get()) }
