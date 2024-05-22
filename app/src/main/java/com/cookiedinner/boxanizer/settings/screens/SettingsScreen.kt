@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.data.DataStoreManager
 import com.cookiedinner.boxanizer.core.utilities.getPackageInfo
+import com.cookiedinner.boxanizer.core.utilities.indexMap
 import com.cookiedinner.boxanizer.settings.components.PreferenceGroup
 import com.cookiedinner.boxanizer.settings.components.SwitchPreference
 import com.cookiedinner.boxanizer.settings.components.TextPreference
@@ -179,10 +180,11 @@ private fun SettingsScreenContent(
                     var barcodeDropdownVisible by remember {
                         mutableStateOf(false)
                     }
+                    val barcodesIndexMap = DataStoreManager.BarcodeTypes.entries.indexMap()
                     TextPreference(
                         title = stringResource(R.string.pref_barcodes),
                         description = when {
-                            else -> supportedBarcodes.joinToString { it.type }
+                            else -> supportedBarcodes.sortedBy { barcodesIndexMap[it] }.joinToString { it.type }
                         }
                     ) {
                         barcodeDropdownVisible = true

@@ -141,7 +141,10 @@ fun AppNavigationScreen(
             viewModel.findBoxIdByCode(code) {
                 if (it != null) {
                     cameraState.hide()
-                    navigator.navigateToScreen("${NavigationScreens.BoxDetailsScreen.route}?boxId=$it")
+                    navigator.navigateToScreen(
+                        route = "${NavigationScreens.BoxDetailsScreen.route}?boxId=$it",
+                        singleTop = true
+                    )
                 } else {
                     cameraState.rearmScanner()
                 }

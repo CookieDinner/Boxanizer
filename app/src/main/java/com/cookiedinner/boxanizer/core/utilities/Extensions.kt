@@ -85,3 +85,11 @@ fun <T> FlowObserver(
 }
 
 fun String.trimNewLines() = this.replace("\n", " ").replace("\\s{2,}".toRegex(), " ")
+
+fun <T> Iterable<T>.indexMap(): Map<T, Int> {
+    val map = mutableMapOf<T, Int>()
+    forEachIndexed { i, v ->
+        map[v] = i
+    }
+    return map
+}

@@ -128,8 +128,8 @@ fun CameraDialog(
     val orientation = LocalConfiguration.current.orientation
     val scannableBarcodes = dataStoreManager.collectBarcodeTypesWithLifecycle()
 
-    var canScan by remember {
-        mutableStateOf(true)
+    var canScan = remember {
+        true
     }
 
     LaunchedEffect(state.visible, state.scannerFlag) {
