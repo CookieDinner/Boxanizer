@@ -100,7 +100,10 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
     }
 
     @Throws(Exception::class)
-    fun addTag(itemId: Long, name: String) {
+    fun addTag(
+        itemId: Long,
+        name: String
+    ) {
         database.insertTag(itemId, name)
     }
 
@@ -110,7 +113,10 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
     }
 
     @Throws(Exception::class)
-    fun deleteTag(itemId: Long, name: String) {
+    fun deleteTag(
+        itemId: Long,
+        name: String
+    ) {
         database.deleteTag(itemId, name)
     }
 }

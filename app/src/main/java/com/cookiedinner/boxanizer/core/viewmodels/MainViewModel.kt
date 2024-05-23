@@ -1,17 +1,13 @@
 package com.cookiedinner.boxanizer.core.viewmodels
 
 import android.app.Application
-import android.util.Log
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.data.DataProvider
 import com.cookiedinner.boxanizer.core.models.SearchType
 import com.cookiedinner.boxanizer.core.models.SharedActions
-import com.cookiedinner.boxanizer.core.utilities.BarcodeAnalyzer
-import com.cookiedinner.boxanizer.core.utilities.safelyShowSnackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -60,7 +56,10 @@ class MainViewModel(
     }
 
     private var job: Job? = null
-    fun editSearch(searchType: SearchType, newText: TextFieldValue) {
+    fun editSearch(
+        searchType: SearchType,
+        newText: TextFieldValue
+    ) {
         job?.cancel()
         job = viewModelScope.launch {
             when (searchType) {
@@ -79,7 +78,10 @@ class MainViewModel(
         }
     }
 
-    fun findBoxIdByCode(code: String, callback: (Long?) -> Unit) {
+    fun findBoxIdByCode(
+        code: String,
+        callback: (Long?) -> Unit
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val foundBox = dataProvider.getBoxByCode(code)

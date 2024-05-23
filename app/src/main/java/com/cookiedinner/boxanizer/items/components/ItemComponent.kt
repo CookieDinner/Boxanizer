@@ -99,6 +99,7 @@ fun ItemComponent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ItemContent(
+                modifier = Modifier.weight(1f),
                 item = Item(
                     id = itemInBox.id,
                     name = itemInBox.name,
@@ -107,6 +108,7 @@ fun ItemComponent(
                 )
             )
             Row(
+                modifier = Modifier.padding(start = 8.dp),
                 verticalAlignment = Alignment.Bottom
             ) {
                 FilledIconButton(
@@ -124,7 +126,7 @@ fun ItemComponent(
                     },
                     enabled = interactable && if (cardExpanded)
                         itemInBox.amountInBox > 1 && itemInBox.amountInBox > itemInBox.amountRemovedFromBox
-                     else
+                    else
                         itemInBox.amountRemovedFromBox > 0,
                     colors = IconButtonDefaults.filledTonalIconButtonColors()
                 ) {
@@ -197,8 +199,12 @@ fun ItemComponent(
 }
 
 @Composable
-private fun ItemContent(item: Item) {
+private fun ItemContent(
+    modifier: Modifier = Modifier,
+    item: Item
+) {
     Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         SubcomposeAsyncImage(

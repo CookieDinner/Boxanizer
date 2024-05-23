@@ -20,14 +20,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.ImageNotSupported
-import androidx.compose.material.icons.outlined.BorderColor
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -81,9 +80,12 @@ fun CameraImage(
             when (it) {
                 0 -> {
                     Box(
-                        modifier = Modifier
-                            .height(180.dp)
-                            .fillMaxWidth(),
+                        modifier = if (image == null)
+                            Modifier.size(80.dp)
+                        else
+                            Modifier
+                                .height(180.dp)
+                                .fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(Modifier.size(48.dp))
@@ -171,7 +173,7 @@ fun CameraImage(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Outlined.Delete,
-                                        contentDescription = ""
+                                        contentDescription = stringResource(R.string.delete_image)
                                     )
                                 }
                                 FilledIconButton(
@@ -185,8 +187,8 @@ fun CameraImage(
                                     )
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Outlined.BorderColor,
-                                        contentDescription = ""
+                                        imageVector = Icons.Outlined.Edit,
+                                        contentDescription = stringResource(R.string.edit_image)
                                     )
                                 }
                             }

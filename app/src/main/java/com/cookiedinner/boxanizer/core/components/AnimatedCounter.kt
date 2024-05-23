@@ -13,17 +13,13 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import com.cookiedinner.boxanizer.core.models.Digit
 import com.cookiedinner.boxanizer.core.models.Direction
-import com.cookiedinner.boxanizer.core.models.compareTo
 
 @Composable
 fun AnimatedCounter(

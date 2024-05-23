@@ -1,6 +1,5 @@
 package com.cookiedinner.boxanizer.core.navigation
 
-import android.annotation.SuppressLint
 import androidx.navigation.NavHostController
 
 class Navigator {
@@ -34,14 +33,6 @@ class Navigator {
                 popUpTo(popUpTo)
             launchSingleTop = singleTop
         }
-    }
-
-    @SuppressLint("RestrictedApi")
-    fun navigateToDeeperScreen(route: String) {
-        val backstack = navController?.currentBackStack?.value?.map { NavigationScreens.fromRoute(it.destination.route) } ?: return
-        if (backstack.contains(NavigationScreens.fromRoute(route)))
-            return
-        navController?.navigate(route)
     }
 
     fun popBackStack() {

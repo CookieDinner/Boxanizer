@@ -16,6 +16,7 @@ fun rememberCameraDialogState(
     }
 
 }
+
 class CameraDialogState(
     initialCameraType: CameraType
 ) {

@@ -1,7 +1,6 @@
 package com.cookiedinner.boxanizer.items.viewmodels
 
 import android.app.Application
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.boxes.models.BoxListType
@@ -23,7 +22,7 @@ import kotlinx.coroutines.withContext
 class ItemDetailsViewModel(
     private val context: Application,
     private val dataProvider: DataProvider
-): ViewModelWithSnack() {
+) : ViewModelWithSnack() {
     private val _currentItem = MutableStateFlow<Item?>(null)
     val currentItem = _currentItem.asStateFlow()
 
@@ -39,18 +38,14 @@ class ItemDetailsViewModel(
     private val _tags = MutableStateFlow<List<ItemTag>?>(null)
     val tags = _tags.asStateFlow()
 
-
-    private var initialized = false
     fun getItemDetails(itemId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if (!initialized) {
-                    val itemDetails = if (itemId == -1L) emptyItem else dataProvider.getItemDetails(itemId)
-                    withContext(Dispatchers.Main) {
-                        _nameError.value = false
-                        _currentItem.value = itemDetails
-                        _originalCurrentItem.value = itemDetails
-                    }
+                val itemDetails = if (itemId == -1L) emptyItem else dataProvider.getItemDetails(itemId)
+                withContext(Dispatchers.Main) {
+                    _nameError.value = false
+                    _currentItem.value = itemDetails
+                    _originalCurrentItem.value = itemDetails
                 }
                 if (itemId != -1L) {
                     val boxesWithItem = dataProvider.getBoxesForItem(itemId)
@@ -62,7 +57,6 @@ class ItemDetailsViewModel(
                 } else {
                     _tags.value = listOf()
                 }
-                initialized = true
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 snackbarHostState.safelyShowSnackbar(context.getString(R.string.item_details_error))
@@ -90,14 +84,15 @@ class ItemDetailsViewModel(
             try {
                 _currentItem.update {
                     val newItem = if (it != null) dataProvider.saveItem(it) else null
-                    withContext(Dispatchers.Main) {
-                        _originalCurrentItem.value = newItem
-                        callback()
-                    }
                     if (newItem != null && _tags.value?.isNotEmpty() == true) {
                         _tags.value?.forEach {
                             dataProvider.addTag(newItem.id, it.name)
                         }
+                    }
+                    withContext(Dispatchers.Main) {
+                        _originalCurrentItem.value = newItem
+                        if (it?.id == -1L)
+                            callback()
                     }
                     newItem
                 }
@@ -108,7 +103,10 @@ class ItemDetailsViewModel(
         }
     }
 
-    fun addTag(itemId: Long, name: String) {
+    fun addTag(
+        itemId: Long,
+        name: String
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 if (itemId != -1L) {
@@ -128,7 +126,10 @@ class ItemDetailsViewModel(
         }
     }
 
-    fun removeTag(itemId: Long, name: String) {
+    fun removeTag(
+        itemId: Long,
+        name: String
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 if (itemId != -1L) {

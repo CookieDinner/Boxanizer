@@ -1,8 +1,10 @@
 package com.cookiedinner.boxanizer.core.models
 
-import androidx.compose.runtime.Composable
-
-data class Digit(val digitChar: Char, val fullNumber: Long, val place: Int) {
+data class Digit(
+    val digitChar: Char,
+    val fullNumber: Long,
+    val place: Int
+) {
     override fun equals(other: Any?): Boolean {
         return when (other) {
             is Digit -> digitChar == other.digitChar

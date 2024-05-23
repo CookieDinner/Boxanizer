@@ -36,7 +36,10 @@ class DataStoreManager(private val context: Context) {
         POLISH("pl")
     }
 
-    enum class BarcodeTypes(val type: String, val code: Int) {
+    enum class BarcodeTypes(
+        val type: String,
+        val code: Int
+    ) {
         FORMAT_CODE_128("Code 128", Barcode.FORMAT_CODE_128),
         FORMAT_CODE_39("Code 39", Barcode.FORMAT_CODE_39),
         FORMAT_CODE_93("Code 93", Barcode.FORMAT_CODE_93),

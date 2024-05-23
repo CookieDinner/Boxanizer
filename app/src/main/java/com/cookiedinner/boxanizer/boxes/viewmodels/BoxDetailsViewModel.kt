@@ -4,13 +4,12 @@ import android.app.Application
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.lifecycle.viewModelScope
 import com.cookiedinner.boxanizer.R
-import com.cookiedinner.boxanizer.core.models.InputErrorType
 import com.cookiedinner.boxanizer.core.data.DataProvider
+import com.cookiedinner.boxanizer.core.models.InputErrorType
 import com.cookiedinner.boxanizer.core.models.emptyBox
 import com.cookiedinner.boxanizer.core.utilities.safelyShowSnackbar
 import com.cookiedinner.boxanizer.core.viewmodels.ViewModelWithSnack
 import com.cookiedinner.boxanizer.database.Box
-import com.cookiedinner.boxanizer.database.ItemInBox
 import com.cookiedinner.boxanizer.items.models.ItemAction
 import com.cookiedinner.boxanizer.items.models.ItemInBoxWithTransition
 import com.cookiedinner.boxanizer.items.models.ItemListType
@@ -42,19 +41,15 @@ class BoxDetailsViewModel(
     private val _items = MutableStateFlow<Map<ItemListType, List<ItemInBoxWithTransition>>?>(null)
     val items = _items.asStateFlow()
 
-    private var initialized = false
-
     fun getBoxDetails(boxId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if (!initialized) {
-                    val boxDetails = if (boxId == -1L) emptyBox else dataProvider.getBoxDetails(boxId)
-                    withContext(Dispatchers.Main) {
-                        _codeError.value = InputErrorType.NONE
-                        _nameError.value = false
-                        _currentBox.value = boxDetails
-                        _originalCurrentBox.value = boxDetails
-                    }
+                val boxDetails = if (boxId == -1L) emptyBox else dataProvider.getBoxDetails(boxId)
+                withContext(Dispatchers.Main) {
+                    _codeError.value = InputErrorType.NONE
+                    _nameError.value = false
+                    _currentBox.value = boxDetails
+                    _originalCurrentBox.value = boxDetails
                 }
                 if (boxId != -1L) {
                     val boxItems = dataProvider.getBoxItems(boxId)
@@ -64,7 +59,6 @@ class BoxDetailsViewModel(
                         }
                     }
                 }
-                initialized = true
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 snackbarHostState.safelyShowSnackbar(context.getString(R.string.box_details_error))
@@ -102,7 +96,8 @@ class BoxDetailsViewModel(
                     val newBox = if (it != null) dataProvider.saveBox(it) else null
                     withContext(Dispatchers.Main) {
                         _originalCurrentBox.value = newBox
-                        callback()
+                        if (it?.id == -1L)
+                            callback()
                     }
                     newBox
                 }
@@ -113,7 +108,11 @@ class BoxDetailsViewModel(
         }
     }
 
-    fun editItemInBox(itemId: Long, action: ItemAction, callback: () -> Unit) {
+    fun editItemInBox(
+        itemId: Long,
+        action: ItemAction,
+        callback: () -> Unit
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _items.update { map ->
@@ -179,6 +178,7 @@ class BoxDetailsViewModel(
                                 }
                             }
                         }
+
                         ItemAction.ADD, ItemAction.REMOVE -> {
                             if (action == ItemAction.REMOVE && itemToMove.item.amountInBox == 1L) {
                                 map
@@ -200,6 +200,7 @@ class BoxDetailsViewModel(
                                 }
                             }
                         }
+
                         ItemAction.DELETE -> {
                             map.mapValues {
                                 it.value.filterNot { it.item.id == itemId }

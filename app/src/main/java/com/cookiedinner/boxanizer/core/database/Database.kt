@@ -1,6 +1,5 @@
 package com.cookiedinner.boxanizer.core.database
 
-import android.util.Log
 import app.cash.sqldelight.Query
 import com.cookiedinner.boxanizer.database.Box
 import com.cookiedinner.boxanizer.database.BoxWithItem
@@ -19,7 +18,7 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
     private val itemQueries = database.itemQueries
     private val itemTagQueries = database.itemTagQueries
 
-    private fun <T: Any> buildListFromQuery(
+    private fun <T : Any> buildListFromQuery(
         searchQuery: String,
         databaseFunction: (String) -> Query<T>,
         comparisonField: (T) -> Any
@@ -38,6 +37,7 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
         }
         return finalList
     }
+
     fun boxesSelectByQuery(query: String): List<Box> {
         return buildListFromQuery(
             searchQuery = query,
@@ -142,7 +142,12 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
     }
 
     @Throws(Exception::class)
-    fun editItemInBox(itemId: Long, boxId: Long, action: ItemAction, item: ItemInBox) {
+    fun editItemInBox(
+        itemId: Long,
+        boxId: Long,
+        action: ItemAction,
+        item: ItemInBox
+    ) {
         when (action) {
             ItemAction.BORROW, ItemAction.RETURN -> {
                 if ((action == ItemAction.BORROW && item.amountRemovedFromBox == 0L) || (action == ItemAction.RETURN && item.amountRemovedFromBox == 1L)) {
@@ -159,6 +164,7 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
                     )
                 }
             }
+
             ItemAction.ADD, ItemAction.REMOVE -> {
                 if (action == ItemAction.REMOVE) {
                     if (item.amountInBox > 1L) {
@@ -176,6 +182,7 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
                     )
                 }
             }
+
             ItemAction.DELETE -> {
                 itemQueries.deleteFromBox(boxId, itemId)
             }
@@ -188,12 +195,18 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
     }
 
     @Throws(Exception::class)
-    fun insertTag(itemId: Long, name: String) {
+    fun insertTag(
+        itemId: Long,
+        name: String
+    ) {
         itemTagQueries.insert(itemId, name)
     }
 
     @Throws(Exception::class)
-    fun deleteTag(itemId: Long, name: String) {
+    fun deleteTag(
+        itemId: Long,
+        name: String
+    ) {
         itemTagQueries.delete(itemId, name)
     }
 }

@@ -1,7 +1,6 @@
 package com.cookiedinner.boxanizer.boxes.viewmodels
 
 import android.app.Application
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.data.DataProvider

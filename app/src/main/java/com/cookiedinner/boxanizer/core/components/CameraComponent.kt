@@ -3,8 +3,6 @@ package com.cookiedinner.boxanizer.core.components
 import android.Manifest
 import android.content.res.Configuration
 import android.graphics.Bitmap
-import android.util.Log
-import android.view.KeyEvent
 import android.widget.LinearLayout
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis.Analyzer
@@ -56,10 +54,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -68,18 +63,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cookiedinner.boxanizer.core.data.DataStoreManager
 import com.cookiedinner.boxanizer.core.models.CameraDialogState
 import com.cookiedinner.boxanizer.core.models.CameraPhotoPhase
 import com.cookiedinner.boxanizer.core.models.CameraType
 import com.cookiedinner.boxanizer.core.utilities.BarcodeAnalyzer
-import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
-import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
@@ -116,6 +107,7 @@ object CameraComponentDefaults {
         }
     }
 }
+
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun CameraDialog(
@@ -190,9 +182,11 @@ fun CameraDialog(
                                             CameraPhotoPhase.TAKING -> {
                                                 state.hide()
                                             }
+
                                             CameraPhotoPhase.DONE -> {
                                                 takePhoto(byteArray)
                                             }
+
                                             CameraPhotoPhase.ERROR -> {
                                                 //TODO Camera error handling
                                             }

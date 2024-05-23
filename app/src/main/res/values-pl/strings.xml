@@ -73,4 +73,7 @@
     <string name="delete_tag">Usuń tag</string>
     <string name="close_search">Zamknij wyszukiwanie</string>
     <string name="add_new_tag">Dodaj nowy tag</string>
+    <string name="general_info">Dane ogólne</string>
+    <string name="delete_image">Usuń zdjęcie</string>
+    <string name="edit_image">Edytuj zdjęcie</string>
 </resources>
