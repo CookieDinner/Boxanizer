@@ -16,37 +16,44 @@ SELECT * FROM Item WHERE id = :itemId;
 itemInBox:
 SELECT * FROM Item
 INNER JOIN BoxItem ON Item.id = BoxItem.itemId
-WHERE BoxItem.boxId = :boxId;
+WHERE BoxItem.boxId = :boxId
+ORDER BY BoxItem.rowid DESC;
 
 selectRemovedFromBoxes:
 SELECT Item.* FROM Item
 INNER JOIN BoxItem ON Item.id = BoxItem.itemId
+LEFT JOIN ItemTag ON Item.id = ItemTag.itemId
 WHERE BoxItem.amountRemovedFromBox != 0
 AND CASE WHEN :query != '' THEN
 (Item.name LIKE '%' || :query || '%' OR
-Item.description LIKE '%' || :query || '%')
+Item.description LIKE '%' || :query || '%' OR
+ItemTag.name LIKE '%' || :query || '%')
 ELSE 1 END
-ORDER BY BoxItem.lastTimeMovedSections DESC;
+ORDER BY BoxItem.rowid DESC;
 
 selectInBoxes:
 SELECT Item.* FROM Item
 INNER JOIN BoxItem ON Item.id = BoxItem.itemId
+LEFT JOIN ItemTag ON Item.id = ItemTag.itemId
 WHERE BoxItem.amountRemovedFromBox = 0
 AND CASE WHEN :query != '' THEN
 (Item.name LIKE '%' || :query || '%' OR
-Item.description LIKE '%' || :query || '%')
+Item.description LIKE '%' || :query || '%' OR
+ItemTag.name LIKE '%' || :query || '%')
 ELSE 1 END
-ORDER BY BoxItem.lastTimeMovedSections DESC;
+ORDER BY BoxItem.rowid DESC;
 
 selectNotInBoxes:
 SELECT Item.* FROM Item
 LEFT JOIN BoxItem ON Item.id = BoxItem.itemId
+LEFT JOIN ItemTag ON Item.id = ItemTag.itemId
 WHERE BoxItem.itemId IS NULL
 AND CASE WHEN :query != '' THEN
 (Item.name LIKE '%' || :query || '%' OR
-Item.description LIKE '%' || :query || '%')
+Item.description LIKE '%' || :query || '%' OR
+ItemTag.name LIKE '%' || :query || '%')
 ELSE 1 END
-ORDER BY BoxItem.lastTimeMovedSections DESC;
+ORDER BY BoxItem.rowid DESC;
 
 insert:
 INSERT OR REPLACE INTO Item VALUES (:id, :name, :description, :image);
@@ -64,8 +71,8 @@ deleteTagLinks:
 DELETE FROM ItemTag WHERE itemId = :id;
 
 insertToBox:
-INSERT OR REPLACE INTO BoxItem(boxId, itemId, amountInBox, lastTimeMovedSections)
-VALUES (:boxId, :itemId, 1, :timestamp);
+INSERT OR REPLACE INTO BoxItem(boxId, itemId, amountInBox)
+VALUES (:boxId, :itemId, 1);
 
 deleteFromBox:
 DELETE FROM BoxItem WHERE boxId = :boxId AND itemId = :itemId;
@@ -74,9 +81,8 @@ editAmountRemovedInBox:
 UPDATE BoxItem SET amountRemovedFromBox = :newAmount
 WHERE itemId = :itemId AND boxId = :boxId;
 
-editAmountRemovedInBoxWithTimestamp:
-UPDATE BoxItem SET amountRemovedFromBox = :newAmount, lastTimeMovedSections = :newTimestamp
-WHERE itemId = :itemId AND boxId = :boxId;
+reinsertAmountRemovedInBox:
+INSERT OR REPLACE INTO BoxItem(boxId, itemId, amountRemovedFromBox) VALUES (?, ?, ?);
 
 editAmountInBox:
 UPDATE BoxItem SET amountInBox = :newAmount

@@ -11,6 +11,7 @@ import com.cookiedinner.boxanizer.core.utilities.safelyShowSnackbar
 import com.cookiedinner.boxanizer.core.viewmodels.ViewModelWithSnack
 import com.cookiedinner.boxanizer.database.BoxWithItem
 import com.cookiedinner.boxanizer.database.Item
+import com.cookiedinner.boxanizer.database.ItemTag
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +36,9 @@ class ItemDetailsViewModel(
     private val _boxes = MutableStateFlow<Map<BoxListType, List<BoxWithItem>>?>(null)
     val boxes = _boxes.asStateFlow()
 
+    private val _tags = MutableStateFlow<List<ItemTag>?>(null)
+    val tags = _tags.asStateFlow()
+
 
     private var initialized = false
     fun getItemDetails(itemId: Long) {
@@ -48,9 +52,15 @@ class ItemDetailsViewModel(
                         _originalCurrentItem.value = itemDetails
                     }
                 }
-                val boxesWithItem = if (itemId == -1L) emptyMap() else dataProvider.getBoxesForItem(itemId)
-                withContext(Dispatchers.Main) {
-                    _boxes.value = boxesWithItem
+                if (itemId != -1L) {
+                    val boxesWithItem = dataProvider.getBoxesForItem(itemId)
+                    val itemTags = dataProvider.getTagsForItem(itemId)
+                    withContext(Dispatchers.Main) {
+                        _boxes.value = boxesWithItem
+                        _tags.value = itemTags
+                    }
+                } else {
+                    _tags.value = listOf()
                 }
                 initialized = true
             } catch (ex: Exception) {
@@ -84,11 +94,56 @@ class ItemDetailsViewModel(
                         _originalCurrentItem.value = newItem
                         callback()
                     }
+                    if (newItem != null && _tags.value?.isNotEmpty() == true) {
+                        _tags.value?.forEach {
+                            dataProvider.addTag(newItem.id, it.name)
+                        }
+                    }
                     newItem
                 }
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 snackbarHostState.safelyShowSnackbar(context.getString(R.string.item_save_error))
+            }
+        }
+    }
+
+    fun addTag(itemId: Long, name: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (itemId != -1L) {
+                    dataProvider.addTag(itemId, name)
+                    _tags.update {
+                        dataProvider.getTagsForItem(itemId)
+                    }
+                } else {
+                    _tags.update {
+                        (it ?: listOf()) + ItemTag(itemId, name)
+                    }
+                }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                snackbarHostState.safelyShowSnackbar(context.getString(R.string.tag_add_error))
+            }
+        }
+    }
+
+    fun removeTag(itemId: Long, name: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (itemId != -1L) {
+                    dataProvider.deleteTag(itemId, name)
+                    _tags.update {
+                        dataProvider.getTagsForItem(itemId)
+                    }
+                } else {
+                    _tags.update {
+                        it?.filterNot { it == ItemTag(itemId, name) }
+                    }
+                }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                snackbarHostState.safelyShowSnackbar(context.getString(R.string.tag_delete_error))
             }
         }
     }

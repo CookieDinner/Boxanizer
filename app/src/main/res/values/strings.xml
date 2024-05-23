@@ -67,4 +67,10 @@
     <string name="removed_from">Removed from</string>
     <string name="functionalities">FUNCTIONALITIES</string>
     <string name="pref_barcodes">Scannable barcode types</string>
+    <string name="tag_add_error">Couldn\'t add tag</string>
+    <string name="tag_delete_error">Couldn\'t remove tag</string>
+    <string name="tags">Tags</string>
+    <string name="delete_tag">Delete tag</string>
+    <string name="close_search">Close search</string>
+    <string name="add_new_tag">Add new tag</string>
 </resources>

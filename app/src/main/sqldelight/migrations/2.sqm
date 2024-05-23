@@ -1,0 +1,4 @@
+CREATE TABLE tmp_ItemTag (itemId INTEGER NOT NULL, name TEXT NOT NULL, PRIMARY KEY (itemId, name));
+INSERT INTO tmp_ItemTag (itemId, name) SELECT itemId, name FROM ItemTag;
+DROP TABLE ItemTag;
+ALTER TABLE tmp_ItemTag RENAME TO ItemTag;

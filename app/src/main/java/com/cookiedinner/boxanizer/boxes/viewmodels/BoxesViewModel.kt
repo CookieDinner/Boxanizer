@@ -22,6 +22,8 @@ class BoxesViewModel(
     private val _boxes = MutableStateFlow<List<Box>?>(null)
     val boxes = _boxes.asStateFlow()
 
+    var previousSearchQuery = ""
+
     fun getBoxes(
         query: String = "",
         callback: () -> Unit
@@ -32,7 +34,10 @@ class BoxesViewModel(
                 withContext(Dispatchers.Main) {
                     _boxes.value = boxes
                 }
-                callback()
+                if (previousSearchQuery != query) {
+                    callback()
+                    previousSearchQuery = query
+                }
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 snackbarHostState.safelyShowSnackbar(context.getString(R.string.boxes_error))

@@ -1,11 +1,17 @@
 CREATE TABLE ItemTag (
-    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     itemId INTEGER NOT NULL,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    PRIMARY KEY (itemId, name)
 );
 
 selectByItemId:
-SELECT * FROM ItemTag WHERE itemId = :itemId;
+SELECT * FROM ItemTag WHERE itemId = :itemId ORDER BY rowid;
 
 selectByName:
 SELECT * FROM ItemTag WHERE name = :name;
+
+insert:
+INSERT OR REPLACE INTO ItemTag VALUES (:itemId, :name);
+
+delete:
+DELETE FROM ItemTag WHERE itemId = :itemId AND name = :name;

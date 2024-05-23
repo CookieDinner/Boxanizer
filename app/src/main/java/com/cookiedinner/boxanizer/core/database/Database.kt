@@ -7,6 +7,7 @@ import com.cookiedinner.boxanizer.database.BoxWithItem
 import com.cookiedinner.boxanizer.database.BoxanizerDb
 import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.database.ItemInBox
+import com.cookiedinner.boxanizer.database.ItemTag
 import com.cookiedinner.boxanizer.items.models.ItemAction
 
 class Database(databaseDriverFactory: DatabaseDriverFactory) {
@@ -80,10 +81,6 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
         }
     }
 
-    fun itemsSelectAll(): List<Item> {
-        return itemQueries.selectAll().executeAsList()
-    }
-
     fun itemsSelectRemovedFromBoxes(query: String): List<Item> {
         return buildListFromQuery(
             searchQuery = query,
@@ -149,11 +146,10 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
         when (action) {
             ItemAction.BORROW, ItemAction.RETURN -> {
                 if ((action == ItemAction.BORROW && item.amountRemovedFromBox == 0L) || (action == ItemAction.RETURN && item.amountRemovedFromBox == 1L)) {
-                    itemQueries.editAmountRemovedInBoxWithTimestamp(
-                        newAmount = if (action == ItemAction.BORROW) 1 else 0,
-                        newTimestamp = System.currentTimeMillis(),
+                    itemQueries.reinsertAmountRemovedInBox(
+                        boxId = boxId,
                         itemId = itemId,
-                        boxId = boxId
+                        amountRemovedFromBox = if (action == ItemAction.BORROW) 1 else 0
                     )
                 } else {
                     itemQueries.editAmountRemovedInBox(
@@ -184,5 +180,20 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
                 itemQueries.deleteFromBox(boxId, itemId)
             }
         }
+    }
+
+    @Throws(Exception::class)
+    fun selectItemTags(itemId: Long): List<ItemTag> {
+        return itemTagQueries.selectByItemId(itemId).executeAsList()
+    }
+
+    @Throws(Exception::class)
+    fun insertTag(itemId: Long, name: String) {
+        itemTagQueries.insert(itemId, name)
+    }
+
+    @Throws(Exception::class)
+    fun deleteTag(itemId: Long, name: String) {
+        itemTagQueries.delete(itemId, name)
     }
 }

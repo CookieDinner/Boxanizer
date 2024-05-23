@@ -67,4 +67,10 @@
     <string name="removed_from">Wyjęty z</string>
     <string name="functionalities">FUNKCJONALNOŚCI</string>
     <string name="pref_barcodes">Kody kreskowe możliwe do skanowania</string>
+    <string name="tag_add_error">Nie udało się dodać tagu</string>
+    <string name="tag_delete_error">Nie udało się usunąć tagu</string>
+    <string name="tags">Tagi</string>
+    <string name="delete_tag">Usuń tag</string>
+    <string name="close_search">Zamknij wyszukiwanie</string>
+    <string name="add_new_tag">Dodaj nowy tag</string>
 </resources>

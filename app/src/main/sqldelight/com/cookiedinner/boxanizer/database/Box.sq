@@ -38,4 +38,5 @@ DELETE FROM BoxItem WHERE boxId = :id;
 boxWithItem:
 SELECT * FROM Box
 INNER JOIN BoxItem ON Box.id = BoxItem.boxId
-WHERE BoxItem.itemId = :itemId;
+WHERE BoxItem.itemId = :itemId
+ORDER BY BoxItem.rowid DESC;

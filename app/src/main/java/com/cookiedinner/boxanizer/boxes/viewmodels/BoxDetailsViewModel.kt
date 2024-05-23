@@ -56,10 +56,12 @@ class BoxDetailsViewModel(
                         _originalCurrentBox.value = boxDetails
                     }
                 }
-                val boxItems = if (boxId == -1L) emptyMap() else dataProvider.getBoxItems(boxId)
-                withContext(Dispatchers.Main) {
-                    _items.value = boxItems.mapValues {
-                        it.value.map { ItemInBoxWithTransition(it) }
+                if (boxId != -1L) {
+                    val boxItems = dataProvider.getBoxItems(boxId)
+                    withContext(Dispatchers.Main) {
+                        _items.value = boxItems.mapValues {
+                            it.value.map { ItemInBoxWithTransition(it) }
+                        }
                     }
                 }
                 initialized = true

@@ -7,6 +7,7 @@ import com.cookiedinner.boxanizer.database.Box
 import com.cookiedinner.boxanizer.database.BoxWithItem
 import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.database.ItemInBox
+import com.cookiedinner.boxanizer.database.ItemTag
 import com.cookiedinner.boxanizer.items.models.ItemAction
 import com.cookiedinner.boxanizer.items.models.ItemListType
 
@@ -34,9 +35,7 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
             ItemListType.REMOVED to emptyList(),
             ItemListType.IN_BOXES to emptyList()
         )
-        return emptyItemsMap + database.itemsSelectByBoxId(boxId)
-            .sortedWith(compareBy<ItemInBox> { it.amountRemovedFromBox == 0L }.thenByDescending { it.lastTimeMovedSections })
-            .groupBy { if (it.amountRemovedFromBox > 0) ItemListType.REMOVED else ItemListType.IN_BOXES }
+        return emptyItemsMap + database.itemsSelectByBoxId(boxId).groupBy { if (it.amountRemovedFromBox > 0) ItemListType.REMOVED else ItemListType.IN_BOXES }
     }
 
     @Throws(Exception::class)
@@ -92,8 +91,26 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
             BoxListType.REMOVED_FROM to emptyList(),
             BoxListType.INSIDE to emptyList()
         )
-        return emptyMap + database.boxesSelectByItemId(itemId)
-            .sortedWith(compareBy<BoxWithItem> { it.amountRemovedFromBox == 0L }.thenByDescending { it.lastTimeMovedSections })
-            .groupBy { if (it.amountRemovedFromBox > 0) BoxListType.REMOVED_FROM else BoxListType.INSIDE }
+        return emptyMap + database.boxesSelectByItemId(itemId).groupBy { if (it.amountRemovedFromBox > 0) BoxListType.REMOVED_FROM else BoxListType.INSIDE }
+    }
+
+    @Throws(Exception::class)
+    fun getTagsForItem(itemId: Long): List<ItemTag> {
+        return database.selectItemTags(itemId)
+    }
+
+    @Throws(Exception::class)
+    fun addTag(itemId: Long, name: String) {
+        database.insertTag(itemId, name)
+    }
+
+    @Throws(Exception::class)
+    fun addTag(tag: ItemTag) {
+        addTag(tag.itemId, tag.name)
+    }
+
+    @Throws(Exception::class)
+    fun deleteTag(itemId: Long, name: String) {
+        database.deleteTag(itemId, name)
     }
 }
