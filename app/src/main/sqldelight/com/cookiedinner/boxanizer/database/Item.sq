@@ -94,7 +94,7 @@ UPDATE BoxItem SET amountRemovedFromBox = :newAmount
 WHERE itemId = :itemId AND boxId = :boxId;
 
 reinsertAmountRemovedInBox:
-INSERT OR REPLACE INTO BoxItem(boxId, itemId, amountRemovedFromBox) VALUES (?, ?, ?);
+INSERT OR REPLACE INTO BoxItem VALUES (?, ?, ?, ?);
 
 editAmountInBox:
 UPDATE BoxItem SET amountInBox = :newAmount

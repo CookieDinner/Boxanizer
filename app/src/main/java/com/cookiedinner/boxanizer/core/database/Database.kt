@@ -176,6 +176,7 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
                     itemQueries.reinsertAmountRemovedInBox(
                         boxId = boxId,
                         itemId = itemId,
+                        amountInBox = item.amountInBox,
                         amountRemovedFromBox = if (action == ItemAction.BORROW) 1 else 0
                     )
                 } else {
