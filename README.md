@@ -1,2 +1,2 @@
 # Boxanizer
-Small app for an easy and streamlined organization of toolboxes.
+Small app for easy and streamlined organization of toolboxes.
