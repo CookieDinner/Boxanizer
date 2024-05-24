@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
@@ -39,8 +41,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -287,12 +291,16 @@ private fun ItemDetailsScreenContent(
                                 targetState = searchExpanded
                             ) {
                                 if (it) {
+                                    val localStyle = LocalTextStyle.current
+                                    val mergedStyle = localStyle.merge(TextStyle(color = LocalContentColor.current))
                                     BasicTextField(
                                         modifier = Modifier.focusRequester(focusRequester),
                                         value = searchText,
                                         onValueChange = {
                                             searchText = it
                                         },
+                                        textStyle = mergedStyle,
+                                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                                         keyboardOptions = KeyboardOptions(
                                             imeAction = ImeAction.Done
                                         ),

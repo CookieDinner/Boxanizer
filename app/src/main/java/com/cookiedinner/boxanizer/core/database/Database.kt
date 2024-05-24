@@ -8,6 +8,7 @@ import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.database.ItemInBox
 import com.cookiedinner.boxanizer.database.ItemTag
 import com.cookiedinner.boxanizer.items.models.ItemAction
+import com.cookiedinner.boxanizer.items.models.ItemForQueryInBox
 
 class Database(databaseDriverFactory: DatabaseDriverFactory) {
     private val database = BoxanizerDb(
@@ -103,6 +104,27 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
             databaseFunction = itemQueries::selectNotInBoxes,
             comparisonField = { it.id }
         ).distinctBy { it.id }
+    }
+
+    fun itemsSelectForQueryInBox(
+        query: String,
+        boxId: Long
+    ): List<ItemForQueryInBox> {
+        return buildListFromQuery(
+            searchQuery = query,
+            databaseFunction = {
+                itemQueries.selectForQueryInBox(boxId, it)
+            },
+            comparisonField = { it.id }
+        ).distinctBy { it.id }.map {
+            ItemForQueryInBox(
+                id = it.id,
+                name = it.name,
+                description = it.description,
+                image = it.image,
+                alreadyInBox = it.alreadyInBox == 1L
+            )
+        }
     }
 
     fun itemSelectById(id: Long): Item? {
@@ -208,5 +230,13 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
         name: String
     ) {
         itemTagQueries.delete(itemId, name)
+    }
+
+    @Throws(Exception::class)
+    fun addItemToBox(
+        boxId: Long,
+        itemId: Long
+    ) {
+        itemQueries.insertToBox(boxId, itemId)
     }
 }

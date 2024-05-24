@@ -61,8 +61,8 @@
     <string name="in_this_box">W pudełku</string>
     <string name="item_borrow_error">Nie udało się wyciągnąć przedmiotu</string>
     <string name="item_return_error">Nie udało się zwrócić przedmiotu</string>
-    <string name="item_remove_error">Nie udało się dodać przedmiotu do pudełka</string>
-    <string name="item_add_error">Nie udało się usunąć przedmiotu z pudełka</string>
+    <string name="item_remove_error">Nie udało się usunąć przedmiotu z pudełka</string>
+    <string name="item_add_error">Nie udało się dodać przedmiotu do pudełka</string>
     <string name="item_delete_box_error">Nie udało się kompletnie usunąć przedmiotu z pudełka</string>
     <string name="removed_from">Wyjęty z</string>
     <string name="functionalities">FUNKCJONALNOŚCI</string>
@@ -76,4 +76,5 @@
     <string name="general_info">Dane ogólne</string>
     <string name="delete_image">Usuń zdjęcie</string>
     <string name="edit_image">Edytuj zdjęcie</string>
+    <string name="failed_to_find_items_for_the_query">Nie udało się znaleźć przedmiotów</string>
 </resources>

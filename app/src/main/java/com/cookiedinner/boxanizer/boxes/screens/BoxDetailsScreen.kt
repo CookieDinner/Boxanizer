@@ -24,6 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,8 +63,10 @@ import com.cookiedinner.boxanizer.core.utilities.FlowObserver
 import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
 import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
 import com.cookiedinner.boxanizer.database.Box
+import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.items.components.ItemComponent
 import com.cookiedinner.boxanizer.items.models.ItemAction
+import com.cookiedinner.boxanizer.items.models.ItemForQueryInBox
 import com.cookiedinner.boxanizer.items.models.ItemInBoxWithTransition
 import com.cookiedinner.boxanizer.items.models.ItemListType
 import kotlinx.coroutines.delay
@@ -83,6 +87,8 @@ fun BoxDetailsScreen(
     val nameError = viewModel.nameError.collectAsStateWithLifecycle()
 
     val items = viewModel.items.collectAsStateWithLifecycle()
+
+    val searchItems = viewModel.searchItems.collectAsStateWithLifecycle()
 
     val focusManager = LocalFocusManager.current
 
@@ -107,6 +113,7 @@ fun BoxDetailsScreen(
     BoxDetailsScreenContent(
         box = currentBox.value,
         items = items.value,
+        searchItems = searchItems.value,
         editBox = {
             viewModel.editCurrentBox(it)
         },
@@ -115,20 +122,25 @@ fun BoxDetailsScreen(
         onItemEdited = viewModel::editItemInBox,
         onItemClick = {
             navigator.navigateToScreen("${NavigationScreens.ItemDetailsScreen.route}?itemId=$it")
-        }
+        },
+        searchForItems = viewModel::searchItems,
+        addItem = viewModel::addItem
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun BoxDetailsScreenContent(
     box: Box?,
     items: Map<ItemListType, List<ItemInBoxWithTransition>>?,
+    searchItems: List<ItemForQueryInBox>,
     editBox: (Box?) -> Unit,
     codeError: InputErrorType,
     nameError: Boolean,
     onItemEdited: (Long, ItemAction, () -> Unit) -> Unit,
-    onItemClick: (Long) -> Unit
+    onItemClick: (Long) -> Unit,
+    searchForItems: (String) -> Unit,
+    addItem: (Item) -> Unit
 ) {
     val cameraState = rememberCameraDialogState()
 
@@ -287,72 +299,101 @@ private fun BoxDetailsScreenContent(
                     }
                 )
             }
-            item {
-                Column {
-                    Text(
-                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-                        text = stringResource(R.string.items),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    var searchExpanded by remember {
-                        mutableStateOf(false)
-                    }
-                    var searchText by remember {
-                        mutableStateOf("")
-                    }
-                    val focusRequester = remember {
-                        FocusRequester()
-                    }
-                    LaunchedEffect(searchExpanded) {
-                        if (searchExpanded) {
-                            delay(200)
-                            focusRequester.requestFocus()
+            if (box?.id != -1L) {
+                item {
+                    Column {
+                        Text(
+                            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+                            text = stringResource(R.string.items),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        var searchExpanded by remember {
+                            mutableStateOf(false)
                         }
-                    }
-                    AnimatedContent(
-                        targetState = searchExpanded
-                    ) {
-                        if (it) {
-                            OutlinedTextField(
-                                modifier = Modifier.focusRequester(focusRequester),
-                                value = searchText,
-                                onValueChange = {
-                                    searchText = it
-                                },
-                                placeholder = { Text(text = stringResource(R.string.add_item)) },
-                                keyboardOptions = KeyboardOptions(
-                                    imeAction = ImeAction.Done
-                                ),
-                                keyboardActions = KeyboardActions(
-                                    onDone = {
-                                        searchExpanded = false
-                                        searchText = ""
-                                    }
-                                ),
-                                trailingIcon = {
-                                    IconButton(
-                                        onClick = {
-                                            searchExpanded = false
-                                            searchText = ""
+                        var searchText by remember {
+                            mutableStateOf("")
+                        }
+                        val focusRequester = remember {
+                            FocusRequester()
+                        }
+                        var dropdownVisibilityOverride by remember {
+                            mutableStateOf(false)
+                        }
+                        LaunchedEffect(searchExpanded) {
+                            if (searchExpanded) {
+                                delay(200)
+                                focusRequester.requestFocus()
+                            } else {
+                                searchForItems("")
+                            }
+                        }
+                        AnimatedContent(
+                            targetState = searchExpanded
+                        ) {
+                            if (it) {
+                                ExposedDropdownMenuBox(
+                                    expanded = searchText.isNotBlank() && dropdownVisibilityOverride,
+                                    onExpandedChange = {}
+                                ) {
+                                    OutlinedTextField(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .menuAnchor()
+                                            .focusRequester(focusRequester),
+                                        value = searchText,
+                                        onValueChange = {
+                                            dropdownVisibilityOverride = true
+                                            searchText = it
+                                            searchForItems(it)
+                                        },
+                                        placeholder = { Text(text = stringResource(R.string.add_item) + "...") },
+                                        singleLine = true,
+                                        trailingIcon = {
+                                            IconButton(
+                                                onClick = {
+                                                    searchText = ""
+                                                    searchExpanded = false
+                                                }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Close,
+                                                    contentDescription = stringResource(R.string.close_search)
+                                                )
+                                            }
                                         }
+                                    )
+                                    ExposedDropdownMenu(
+                                        expanded = searchText.isNotBlank() && dropdownVisibilityOverride,
+                                        onDismissRequest = { dropdownVisibilityOverride = false },
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Close,
-                                            contentDescription = stringResource(R.string.close_search)
-                                        )
+                                        val extraItem = if (searchText.isNotBlank() && searchItems.none { it.name == searchText })
+                                            listOf(ItemForQueryInBox(id = -1, name = searchText, description = null, image = null, alreadyInBox = false))
+                                        else
+                                            listOf()
+                                        (extraItem + searchItems).forEach {
+                                            val item = Item(it.id, it.name, it.description, it.image)
+                                            ItemComponent(
+                                                item = item,
+                                                onClick = {
+                                                    addItem(item)
+                                                    searchText = ""
+                                                    searchExpanded = false
+                                                }
+                                            )
+                                        }
                                     }
                                 }
-                            )
-                        } else {
-                            OutlinedIconButton(
-                                onClick = { searchExpanded = true },
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = stringResource(R.string.add_new_tag),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                            } else {
+                                OutlinedIconButton(
+                                    onClick = { searchExpanded = true },
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = stringResource(R.string.add_new_tag),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
                     }

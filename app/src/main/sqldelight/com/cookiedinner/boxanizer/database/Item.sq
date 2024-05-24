@@ -55,6 +55,18 @@ ItemTag.name LIKE '%' || :query || '%')
 ELSE 1 END
 ORDER BY BoxItem.rowid DESC;
 
+selectForQueryInBox:
+SELECT Item.*, CASE WHEN BoxItem.itemId IS NULL THEN 0 ELSE 1 END AS alreadyInBox FROM Item
+LEFT JOIN BoxItem ON Item.id = BoxItem.itemId AND BoxItem.boxId = :boxId
+LEFT JOIN ItemTag ON Item.id = ItemTag.itemId
+WHERE CASE WHEN :query != '' THEN
+(Item.name LIKE '%' || :query || '%' OR
+Item.description LIKE '%' || :query || '%' OR
+ItemTag.name LIKE '%' || :query || '%')
+ELSE 0 END
+AND (BoxItem.itemId IS NULL OR BoxItem.boxId = :boxId)
+ORDER BY Item.name;
+
 insert:
 INSERT OR REPLACE INTO Item VALUES (:id, :name, :description, :image);
 
@@ -71,8 +83,8 @@ deleteTagLinks:
 DELETE FROM ItemTag WHERE itemId = :id;
 
 insertToBox:
-INSERT OR REPLACE INTO BoxItem(boxId, itemId, amountInBox)
-VALUES (:boxId, :itemId, 1);
+INSERT OR REPLACE INTO BoxItem(boxId, itemId, amountInBox, amountRemovedFromBox)
+VALUES (:boxId, :itemId, 1, 0);
 
 deleteFromBox:
 DELETE FROM BoxItem WHERE boxId = :boxId AND itemId = :itemId;

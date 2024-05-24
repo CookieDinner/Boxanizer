@@ -9,6 +9,7 @@ import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.database.ItemInBox
 import com.cookiedinner.boxanizer.database.ItemTag
 import com.cookiedinner.boxanizer.items.models.ItemAction
+import com.cookiedinner.boxanizer.items.models.ItemForQueryInBox
 import com.cookiedinner.boxanizer.items.models.ItemListType
 
 class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
@@ -66,6 +67,14 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
     }
 
     @Throws(Exception::class)
+    fun getItemsForQueryInBox(
+        query: String,
+        boxId: Long
+    ): List<ItemForQueryInBox> {
+        return database.itemsSelectForQueryInBox(query, boxId)
+    }
+
+    @Throws(Exception::class)
     fun getItemDetails(itemId: Long): Item {
         return database.itemSelectById(itemId) ?: throw Exception()
     }
@@ -118,5 +127,18 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
         name: String
     ) {
         database.deleteTag(itemId, name)
+    }
+
+    @Throws(Exception::class)
+    fun addItemToBox(
+        boxId: Long,
+        item: Item
+    ) {
+        if (item.id == -1L) {
+            val insertedItem = database.insertItem(item) ?: throw Exception("Somehow the inserted item returned null")
+            database.addItemToBox(boxId, insertedItem.id)
+        } else {
+            database.addItemToBox(boxId, item.id)
+        }
     }
 }

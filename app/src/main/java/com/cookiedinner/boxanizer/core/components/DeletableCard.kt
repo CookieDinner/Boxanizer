@@ -44,8 +44,8 @@ import com.cookiedinner.boxanizer.R
 fun DeletableCard(
     modifier: Modifier = Modifier,
     padding: PaddingValues = PaddingValues(20.dp),
-    onClick: () -> Unit,
-    onDelete: () -> Unit,
+    onClick: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
     onExpanded: (Boolean) -> Unit = {},
     content: @Composable RowScope.() -> Unit
 ) {
@@ -64,7 +64,7 @@ fun DeletableCard(
     )
     LaunchedEffect(visible.currentState) {
         if (!visible.currentState) {
-            onDelete()
+            onDelete?.invoke()
         }
     }
     AnimatedVisibility(
@@ -113,19 +113,26 @@ fun DeletableCard(
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
-                        .combinedClickable(
-                            onClick = {
-                                if (!expanded)
-                                    onClick()
-                                else {
-                                    expanded = false
-                                    onExpanded(false)
-                                }
-                            },
-                            onLongClick = {
-                                expanded = !expanded
-                                onExpanded(expanded)
-                            }
+                        .then(
+                            if (onClick != null || onDelete != null) {
+                                Modifier.combinedClickable(
+                                    onClick = {
+                                        if (!expanded)
+                                            onClick?.invoke()
+                                        else {
+                                            expanded = false
+                                            onExpanded(false)
+                                        }
+                                    },
+                                    onLongClick = {
+                                        if (onDelete != null) {
+                                            expanded = !expanded
+                                            onExpanded(expanded)
+                                        }
+                                    }
+                                )
+                            } else Modifier
+
                         )
                         .padding(padding),
                     verticalAlignment = Alignment.CenterVertically

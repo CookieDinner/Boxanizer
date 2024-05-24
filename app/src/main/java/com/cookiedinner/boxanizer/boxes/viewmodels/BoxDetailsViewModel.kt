@@ -10,7 +10,9 @@ import com.cookiedinner.boxanizer.core.models.emptyBox
 import com.cookiedinner.boxanizer.core.utilities.safelyShowSnackbar
 import com.cookiedinner.boxanizer.core.viewmodels.ViewModelWithSnack
 import com.cookiedinner.boxanizer.database.Box
+import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.items.models.ItemAction
+import com.cookiedinner.boxanizer.items.models.ItemForQueryInBox
 import com.cookiedinner.boxanizer.items.models.ItemInBoxWithTransition
 import com.cookiedinner.boxanizer.items.models.ItemListType
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +43,9 @@ class BoxDetailsViewModel(
     private val _items = MutableStateFlow<Map<ItemListType, List<ItemInBoxWithTransition>>?>(null)
     val items = _items.asStateFlow()
 
+    private val _searchItems = MutableStateFlow<List<ItemForQueryInBox>>(emptyList())
+    val searchItems = _searchItems.asStateFlow()
+
     fun getBoxDetails(boxId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -51,17 +56,21 @@ class BoxDetailsViewModel(
                     _currentBox.value = boxDetails
                     _originalCurrentBox.value = boxDetails
                 }
-                if (boxId != -1L) {
-                    val boxItems = dataProvider.getBoxItems(boxId)
-                    withContext(Dispatchers.Main) {
-                        _items.value = boxItems.mapValues {
-                            it.value.map { ItemInBoxWithTransition(it) }
-                        }
-                    }
-                }
+                getBoxItems(boxId)
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 snackbarHostState.safelyShowSnackbar(context.getString(R.string.box_details_error))
+            }
+        }
+    }
+
+    private suspend fun getBoxItems(boxId: Long) {
+        if (boxId != -1L) {
+            val boxItems = dataProvider.getBoxItems(boxId)
+            withContext(Dispatchers.Main) {
+                _items.value = boxItems.mapValues {
+                    it.value.map { ItemInBoxWithTransition(it) }
+                }
             }
         }
     }
@@ -221,6 +230,31 @@ class BoxDetailsViewModel(
                         ItemAction.DELETE -> context.getString(R.string.item_delete_box_error)
                     }
                 )
+            }
+        }
+    }
+
+    fun searchItems(query: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _searchItems.value = dataProvider.getItemsForQueryInBox(query, _currentBox.value?.id ?: return@launch)
+                    .filter { !it.alreadyInBox }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                snackbarHostState.safelyShowSnackbar(context.getString(R.string.failed_to_find_items_for_the_query))
+            }
+        }
+    }
+
+    fun addItem(item: Item) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val boxId = _currentBox.value?.id ?: throw Exception()
+                dataProvider.addItemToBox(boxId, item)
+                getBoxItems(boxId)
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                snackbarHostState.safelyShowSnackbar(context.getString(R.string.item_add_error))
             }
         }
     }

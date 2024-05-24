@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Construction
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.NorthEast
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.SubdirectoryArrowLeft
@@ -65,6 +66,33 @@ fun ItemComponent(
         onDelete = onDelete
     ) {
         ItemContent(item = item)
+    }
+}
+
+@Composable
+fun ItemComponent(
+    modifier: Modifier = Modifier,
+    item: Item,
+    onClick: () -> Unit
+) {
+    DeletableCard(
+        modifier = modifier,
+        onClick = onClick,
+        onDelete = null
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ItemContent(
+                modifier = Modifier.weight(1f),
+                item = item
+            )
+            if (item.id == -1L) {
+                Icon(imageVector = Icons.Default.NewReleases, contentDescription = "")
+            }
+        }
     }
 }
 

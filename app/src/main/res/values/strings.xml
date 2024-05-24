@@ -76,4 +76,5 @@
     <string name="general_info">General Info</string>
     <string name="delete_image">Delete image</string>
     <string name="edit_image">Edit image</string>
+    <string name="failed_to_find_items_for_the_query">Failed to find items for the query</string>
 </resources>
