@@ -1,6 +1,8 @@
 package com.cookiedinner.boxanizer.core.data
 
 import com.cookiedinner.boxanizer.boxes.models.BoxListType
+import com.cookiedinner.boxanizer.core.api.ApiClient
+import com.cookiedinner.boxanizer.core.api.ReleaseInfo
 import com.cookiedinner.boxanizer.core.database.Database
 import com.cookiedinner.boxanizer.core.database.DatabaseDriverFactory
 import com.cookiedinner.boxanizer.database.Box
@@ -14,6 +16,13 @@ import com.cookiedinner.boxanizer.items.models.ItemListType
 
 class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
     private val database = Database(databaseDriverFactory)
+    private val apiClient = ApiClient()
+
+    @Throws(Exception::class)
+    suspend fun checkForUpdates(): ReleaseInfo? {
+        val releaseInfoList = apiClient.checkForUpdates()
+        return releaseInfoList.maxByOrNull { it.name }
+    }
 
     @Throws(Exception::class)
     fun getBoxes(query: String = ""): List<Box> {

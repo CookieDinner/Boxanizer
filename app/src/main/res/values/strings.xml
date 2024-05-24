@@ -77,4 +77,9 @@
     <string name="delete_image">Delete image</string>
     <string name="edit_image">Edit image</string>
     <string name="failed_to_find_items_for_the_query">Failed to find items for the query</string>
+    <string name="no_other_version_available">No other version available</string>
+    <string name="newer_version_available">Newer version available!</string>
+    <string name="open">Open</string>
+    <string name="you_have_the_newest_version">You have the newest version!</string>
+    <string name="failed_to_check_for_updates">Failed to check for updates</string>
 </resources>

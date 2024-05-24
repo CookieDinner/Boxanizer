@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.sqldelight)
+    alias(libs.plugins.serialization)
 }
 
 android {
@@ -13,7 +14,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "v1.0.0"
+        versionName = "v1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -22,10 +23,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            isDebuggable = true
+        }
         release {
+            isDebuggable = false
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -87,6 +92,11 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.lifecycle)
+
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.contentnegotiation)
+    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.serialization)
 
     // Test libraries
     testImplementation(libs.junit)

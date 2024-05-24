@@ -1,5 +1,7 @@
 package com.cookiedinner.boxanizer.settings.screens
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,6 +15,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,21 +31,32 @@ import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.data.DataStoreManager
 import com.cookiedinner.boxanizer.core.utilities.getPackageInfo
 import com.cookiedinner.boxanizer.core.utilities.indexMap
+import com.cookiedinner.boxanizer.core.utilities.koinActivityViewModel
+import com.cookiedinner.boxanizer.core.viewmodels.MainViewModel
 import com.cookiedinner.boxanizer.settings.components.PreferenceGroup
 import com.cookiedinner.boxanizer.settings.components.SwitchPreference
 import com.cookiedinner.boxanizer.settings.components.TextPreference
+import com.cookiedinner.boxanizer.settings.viewmodels.SettingsViewModel
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @Composable
 fun SettingsScreen(
-    dataStoreManager: DataStoreManager = koinInject()
+    dataStoreManager: DataStoreManager = koinInject(),
+    mainViewModel: MainViewModel = koinActivityViewModel(),
+    viewModel: SettingsViewModel = koinViewModel()
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     val dynamicTheme = dataStoreManager.collectDynamicThemeWithLifecycle()
     val currentTheme = dataStoreManager.collectThemeWithLifecycle()
     val barcodeTypes = dataStoreManager.collectBarcodeTypesWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.setSnackbarHost(mainViewModel.snackbarHostState)
+    }
 
     SettingsScreenContent(
         currentTheme = currentTheme.value,
@@ -67,6 +81,12 @@ fun SettingsScreen(
             coroutineScope.launch {
                 dataStoreManager.changeBarcodeTypes(it)
             }
+        },
+        checkForUpdates = {
+            viewModel.checkForUpdates {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it))
+                context.startActivity(intent)
+            }
         }
     )
 }
@@ -79,7 +99,8 @@ private fun SettingsScreenContent(
     onDynamicThemeClick: (Boolean) -> Unit,
     onLanguageClick: (DataStoreManager.LanguageChoice) -> Unit,
     supportedBarcodes: Set<DataStoreManager.BarcodeTypes>,
-    onSupportedBarcodesChanged: (Set<DataStoreManager.BarcodeTypes>?) -> Unit
+    onSupportedBarcodesChanged: (Set<DataStoreManager.BarcodeTypes>?) -> Unit,
+    checkForUpdates: () -> Unit
 ) {
     val context = LocalContext.current
     LazyColumn(
@@ -243,7 +264,7 @@ private fun SettingsScreenContent(
                 TextPreference(
                     title = stringResource(R.string.check_for_updates)
                 ) {
-                    // TODO Github updates
+                    checkForUpdates()
                 }
             }
         }
