@@ -119,7 +119,7 @@ fun ItemDetailsScreen(
         },
         nameError = nameError.value,
         onBoxClick = {
-            navigator.navigateToScreen("${NavigationScreens.BoxDetailsScreen.route}?boxId=$it")
+            navigator.navigateToScreen("${NavigationScreens.BoxDetailsScreen.route}?boxId=$it&itemId=$itemId")
         },
         addTag = {
             viewModel.addTag(itemId, it)

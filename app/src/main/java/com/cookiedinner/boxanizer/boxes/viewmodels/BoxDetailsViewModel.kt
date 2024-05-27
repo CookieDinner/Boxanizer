@@ -46,7 +46,13 @@ class BoxDetailsViewModel(
     private val _searchItems = MutableStateFlow<List<ItemForQueryInBox>>(emptyList())
     val searchItems = _searchItems.asStateFlow()
 
-    fun getBoxDetails(boxId: Long) {
+    private var alreadyScrolledToItem = false
+
+    fun getBoxDetails(
+        boxId: Long,
+        itemId: Long?,
+        scrollToItem: (Int) -> Unit
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val boxDetails = if (boxId == -1L) emptyBox else dataProvider.getBoxDetails(boxId)
@@ -57,6 +63,12 @@ class BoxDetailsViewModel(
                     _originalCurrentBox.value = boxDetails
                 }
                 getBoxItems(boxId)
+                if (itemId != null && !alreadyScrolledToItem) {
+                    val index = findScrollIndex(itemId)
+                    withContext(Dispatchers.Main) {
+                        scrollToItem(index)
+                    }
+                }
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 snackbarHostState.safelyShowSnackbar(context.getString(R.string.box_details_error))
@@ -73,6 +85,16 @@ class BoxDetailsViewModel(
                 }
             }
         }
+    }
+
+    private fun findScrollIndex(itemId: Long): Int {
+        val itemsMap = _items.value ?: return 0
+        val removed = itemsMap[ItemListType.REMOVED] ?: return 0
+        val removedIndex = removed.indexOfFirst { it.item.id == itemId }
+        if (removedIndex != -1)
+            return removedIndex + 1
+        val inBoxesIndex = itemsMap[ItemListType.IN_BOXES]?.indexOfFirst { it.item.id == itemId } ?: return 0
+        return if (inBoxesIndex == -1) 0 else inBoxesIndex + removed.size + 2
     }
 
     private var checkBoxJob: Job? = null

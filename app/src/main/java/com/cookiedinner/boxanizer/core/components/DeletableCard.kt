@@ -2,6 +2,7 @@ package com.cookiedinner.boxanizer.core.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
@@ -20,10 +21,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +47,7 @@ import com.cookiedinner.boxanizer.R
 fun DeletableCard(
     modifier: Modifier = Modifier,
     padding: PaddingValues = PaddingValues(20.dp),
+    highlighted: Boolean = false,
     onClick: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
     onExpanded: (Boolean) -> Unit = {},
@@ -87,7 +91,7 @@ fun DeletableCard(
                         visible.targetState = false
                     },
                 color = MaterialTheme.colorScheme.error,
-                shape = MaterialTheme.shapes.large
+                shape = MaterialTheme.shapes.large,
             ) {
                 Row(
                     modifier = Modifier
@@ -103,12 +107,16 @@ fun DeletableCard(
                     )
                 }
             }
+            val highlightedElevation = animateDpAsState(targetValue = if (highlighted) 12.dp else 0.dp)
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
                         this.translationX = -animatedExpandedLength
-                    }
+                    },
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(highlightedElevation.value)
+                )
             ) {
                 Row(
                     modifier = Modifier

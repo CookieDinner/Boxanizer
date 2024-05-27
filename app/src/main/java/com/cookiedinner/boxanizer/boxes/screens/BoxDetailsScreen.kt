@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
@@ -39,6 +40,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -70,12 +72,14 @@ import com.cookiedinner.boxanizer.items.models.ItemForQueryInBox
 import com.cookiedinner.boxanizer.items.models.ItemInBoxWithTransition
 import com.cookiedinner.boxanizer.items.models.ItemListType
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 @Composable
 fun BoxDetailsScreen(
     boxId: Long,
+    itemId: Long? = null,
     navigator: Navigator = koinInject(),
     viewModel: BoxDetailsViewModel = koinViewModel(),
     mainViewModel: MainViewModel = koinActivityViewModel()
@@ -91,10 +95,16 @@ fun BoxDetailsScreen(
     val searchItems = viewModel.searchItems.collectAsStateWithLifecycle()
 
     val focusManager = LocalFocusManager.current
+    val coroutineScope = rememberCoroutineScope()
+    val lazyListState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
         viewModel.setSnackbarHost(mainViewModel.snackbarHostState)
-        viewModel.getBoxDetails(boxId)
+        viewModel.getBoxDetails(boxId, itemId) { indexInItemList ->
+            coroutineScope.launch {
+                lazyListState.animateScrollToItem(indexInItemList + 1)
+            }
+        }
     }
 
     LaunchedEffect(currentBox.value, originalBox.value, codeError.value, nameError.value) {
@@ -113,6 +123,7 @@ fun BoxDetailsScreen(
     BoxDetailsScreenContent(
         box = currentBox.value,
         items = items.value,
+        lazyListState = lazyListState,
         searchItems = searchItems.value,
         editBox = {
             viewModel.editCurrentBox(it)
@@ -124,7 +135,8 @@ fun BoxDetailsScreen(
             navigator.navigateToScreen("${NavigationScreens.ItemDetailsScreen.route}?itemId=$it")
         },
         searchForItems = viewModel::searchItems,
-        addItem = viewModel::addItem
+        addItem = viewModel::addItem,
+        highlightedItemId = itemId
     )
 }
 
@@ -133,6 +145,7 @@ fun BoxDetailsScreen(
 private fun BoxDetailsScreenContent(
     box: Box?,
     items: Map<ItemListType, List<ItemInBoxWithTransition>>?,
+    lazyListState: LazyListState,
     searchItems: List<ItemForQueryInBox>,
     editBox: (Box?) -> Unit,
     codeError: InputErrorType,
@@ -140,7 +153,8 @@ private fun BoxDetailsScreenContent(
     onItemEdited: (Long, ItemAction, () -> Unit) -> Unit,
     onItemClick: (Long) -> Unit,
     searchForItems: (String) -> Unit,
-    addItem: (Item) -> Unit
+    addItem: (Item) -> Unit,
+    highlightedItemId: Long?
 ) {
     val cameraState = rememberCameraDialogState()
 
@@ -171,7 +185,10 @@ private fun BoxDetailsScreenContent(
     )
 
     val focusManager = LocalFocusManager.current
-    val lazyListState = rememberLazyListState()
+
+    var highlightedItem by remember(highlightedItemId) {
+        mutableStateOf(highlightedItemId != null)
+    }
 
     Surface {
         LazyColumn(
@@ -187,121 +204,115 @@ private fun BoxDetailsScreenContent(
             )
         ) {
             item {
-                Text(
-                    modifier = Modifier.padding(bottom = 12.dp),
-                    text = stringResource(R.string.general_info),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Column {
+                    Text(
+                        modifier = Modifier.padding(bottom = 12.dp),
+                        text = stringResource(R.string.general_info),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    CameraImage(
+                        image = box?.image,
+                        photoLoading = cameraState.takingPhoto || box == null,
+                        onEditImage = {
+                            cameraState.showPhoto()
+                        },
+                        onDeleteImage = {
+                            editBox(
+                                box?.copy(
+                                    image = null
+                                )
+                            )
+                        },
+                        addImageLabel = stringResource(R.string.add_box_picture),
+                        imageLabel = stringResource(R.string.box_picture)
+                    )
+                }
             }
             item {
-                CameraImage(
-                    image = box?.image,
-                    photoLoading = cameraState.takingPhoto || box == null,
-                    onEditImage = {
-                        cameraState.showPhoto()
-                    },
-                    onDeleteImage = {
-                        editBox(
-                            box?.copy(
-                                image = null
-                            )
-                        )
-                    },
-                    addImageLabel = stringResource(R.string.add_box_picture),
-                    imageLabel = stringResource(R.string.box_picture)
-                )
-            }
-            item {
-                OutlinedTextField(
-                    modifier = Modifier.padding(top = 8.dp),
-                    value = box?.code ?: "",
-                    label = {
-                        Text(text = stringResource(id = R.string.code))
-                    },
-                    isError = codeError != InputErrorType.NONE,
-                    supportingText = when (codeError) {
-                        InputErrorType.EMPTY -> {
-                            { Text(text = stringResource(R.string.code_error_1)) }
-                        }
-
-                        InputErrorType.ALREADY_EXISTS -> {
-                            { Text(text = stringResource(R.string.code_error_2)) }
-                        }
-
-                        else -> null
-                    },
-                    onValueChange = {
-                        editBox(
-                            box?.copy(
-                                code = it
-                            )
-                        )
-                    },
-                    trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                cameraState.showScanner()
+                Column {
+                    OutlinedTextField(
+                        modifier = Modifier.padding(top = 8.dp),
+                        value = box?.code ?: "",
+                        label = {
+                            Text(text = stringResource(id = R.string.code))
+                        },
+                        isError = codeError != InputErrorType.NONE,
+                        supportingText = when (codeError) {
+                            InputErrorType.EMPTY -> {
+                                { Text(text = stringResource(R.string.code_error_1)) }
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.QrCodeScanner,
-                                contentDescription = stringResource(R.string.scanner)
+
+                            InputErrorType.ALREADY_EXISTS -> {
+                                { Text(text = stringResource(R.string.code_error_2)) }
+                            }
+
+                            else -> null
+                        },
+                        onValueChange = {
+                            editBox(
+                                box?.copy(
+                                    code = it
+                                )
+                            )
+                        },
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    cameraState.showScanner()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.QrCodeScanner,
+                                    contentDescription = stringResource(R.string.scanner)
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        )
+                    )
+                    OutlinedTextField(
+                        modifier = Modifier.padding(top = 8.dp),
+                        value = box?.name ?: "",
+                        label = {
+                            Text(text = stringResource(R.string.name))
+                        },
+                        isError = nameError,
+                        supportingText = if (nameError) {
+                            { Text(text = stringResource(R.string.name_error_1)) }
+                        } else null,
+                        onValueChange = {
+                            editBox(
+                                box?.copy(
+                                    name = it
+                                )
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        )
+                    )
+                    OutlinedTextField(
+                        modifier = Modifier.padding(top = 8.dp),
+                        value = box?.description ?: "",
+                        label = {
+                            Text(text = stringResource(R.string.description))
+                        },
+                        onValueChange = {
+                            editBox(
+                                box?.copy(
+                                    description = it
+                                )
                             )
                         }
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { focusManager.clearFocus() }
                     )
-                )
-            }
-            item {
-                OutlinedTextField(
-                    modifier = Modifier.padding(top = 8.dp),
-                    value = box?.name ?: "",
-                    label = {
-                        Text(text = stringResource(R.string.name))
-                    },
-                    isError = nameError,
-                    supportingText = if (nameError) {
-                        { Text(text = stringResource(R.string.name_error_1)) }
-                    } else null,
-                    onValueChange = {
-                        editBox(
-                            box?.copy(
-                                name = it
-                            )
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { focusManager.clearFocus() }
-                    )
-                )
-            }
-            item {
-                OutlinedTextField(
-                    modifier = Modifier.padding(top = 8.dp),
-                    value = box?.description ?: "",
-                    label = {
-                        Text(text = stringResource(R.string.description))
-                    },
-                    onValueChange = {
-                        editBox(
-                            box?.copy(
-                                description = it
-                            )
-                        )
-                    }
-                )
-            }
-            if (box?.id != -1L) {
-                item {
-                    Column {
+                    if (box?.id != -1L) {
                         Text(
                             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
                             text = stringResource(R.string.items),
@@ -427,6 +438,7 @@ private fun BoxDetailsScreenContent(
                             it.item.id
                         }
                     ) { index, it ->
+                        val shouldHighlight = highlightedItemId == it.item.id
                         AnimatedVisibility(
                             visibleState = it.transitionState.apply { targetState = true },
                             enter = fadeIn() + expandVertically(),
@@ -438,11 +450,16 @@ private fun BoxDetailsScreenContent(
                                     .padding(horizontal = 3.dp),
                                 itemInBox = it.item,
                                 onClick = {
+                                    if (shouldHighlight)
+                                        highlightedItem = false
                                     onItemClick(it.item.id)
                                 },
                                 onAction = { action, callback ->
+                                    if (shouldHighlight)
+                                        highlightedItem = false
                                     onItemEdited(it.item.id, action, callback)
-                                }
+                                },
+                                highlighted = highlightedItem && highlightedItemId == it.item.id
                             )
                         }
                     }

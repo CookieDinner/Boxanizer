@@ -104,6 +104,7 @@ fun ItemComponent(
 fun ItemComponent(
     modifier: Modifier = Modifier,
     itemInBox: ItemInBox,
+    highlighted: Boolean = false,
     onClick: () -> Unit,
     onAction: (ItemAction, () -> Unit) -> Unit,
 ) {
@@ -121,7 +122,8 @@ fun ItemComponent(
         },
         onExpanded = {
             cardExpanded = it
-        }
+        },
+        highlighted = highlighted
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -159,7 +161,7 @@ fun ItemComponent(
                         itemInBox.amountInBox > 1 && itemInBox.amountInBox > itemInBox.amountRemovedFromBox
                     else
                         itemInBox.amountRemovedFromBox > 0,
-                    colors = IconButtonDefaults.filledTonalIconButtonColors()
+                    colors = if (highlighted) IconButtonDefaults.filledIconButtonColors() else IconButtonDefaults.filledTonalIconButtonColors()
                 ) {
                     Icon(
                         modifier = Modifier.rotate(if (cardExpanded) 0f else 90f),
@@ -216,7 +218,7 @@ fun ItemComponent(
                             }
                         },
                         enabled = interactable && (cardExpanded || itemInBox.amountRemovedFromBox < itemInBox.amountInBox),
-                        colors = IconButtonDefaults.filledTonalIconButtonColors()
+                        colors = if (highlighted) IconButtonDefaults.filledIconButtonColors() else IconButtonDefaults.filledTonalIconButtonColors()
                     ) {
                         Icon(
                             imageVector = if (cardExpanded) Icons.Default.Add else Icons.Default.NorthEast,
@@ -278,7 +280,7 @@ private fun ItemContent(
                         modifier = Modifier.size(28.dp),
                         imageVector = if (item.consumable) Icons.Default.Science else Icons.Default.Construction,
                         contentDescription = "",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (item.consumable) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
                     )
                 },
                 loading = {

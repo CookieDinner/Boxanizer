@@ -34,16 +34,24 @@ fun AppNavigationGraph(
         }
 
         customNavigationComposable(
-            route = "${NavigationScreens.BoxDetailsScreen.route}?boxId={box_id}",
+            route = "${NavigationScreens.BoxDetailsScreen.route}?boxId={box_id}&itemId={item_id}",
             arguments = listOf(
                 navArgument("box_id") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                },
+                navArgument("item_id") {
                     type = NavType.LongType
                     defaultValue = -1L
                 }
             )
         ) {
             val boxId = it.arguments?.getLong("box_id") ?: -1L
-            BoxDetailsScreen(boxId = boxId)
+            val itemId = it.arguments?.getLong("item_id") ?: -1
+            BoxDetailsScreen(
+                boxId = boxId,
+                itemId = if (itemId == -1L) null else itemId
+            )
         }
         customNavigationComposable(NavigationScreens.AddBoxScreen.route) {
             BoxDetailsScreen(boxId = -1L)
