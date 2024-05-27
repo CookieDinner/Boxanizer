@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -90,6 +91,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.components.CameraDialog
+import com.cookiedinner.boxanizer.core.components.CustomBadge
+import com.cookiedinner.boxanizer.core.components.CustomBadgedBox
 import com.cookiedinner.boxanizer.core.components.keyboardAsState
 import com.cookiedinner.boxanizer.core.models.BottomNavItem
 import com.cookiedinner.boxanizer.core.models.CameraDialogState
@@ -499,7 +502,7 @@ private fun AppNavigationScreenContent(
                                         }
                                         AnimatedContent(targetState = fabExpanded) {
                                             Surface(color = Color.Transparent) {
-                                                BadgedBox(
+                                                CustomBadgedBox(
                                                     modifier = Modifier.padding(16.dp),
                                                     badge = {
                                                         androidx.compose.animation.AnimatedVisibility(
@@ -507,18 +510,9 @@ private fun AppNavigationScreenContent(
                                                             enter = fadeIn(),
                                                             exit = fadeOut()
                                                         ) {
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .padding(bottom = 12.dp, end = 8.dp)
-                                                                    .size(18.dp)
-                                                                    .clip(CircleShape)
-                                                                    .background(MaterialTheme.colorScheme.primary),
-                                                                contentAlignment = Alignment.Center
-                                                            ) {
+                                                            CustomBadge {
                                                                 Icon(
-                                                                    modifier = Modifier.padding(2.dp),
                                                                     imageVector = Icons.Default.SavedSearch,
-                                                                    tint = MaterialTheme.colorScheme.onPrimary,
                                                                     contentDescription = ""
                                                                 )
                                                             }

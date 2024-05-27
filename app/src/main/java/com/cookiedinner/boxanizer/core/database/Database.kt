@@ -122,6 +122,7 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
                 name = it.name,
                 description = it.description,
                 image = it.image,
+                consumable = it.consumable,
                 alreadyInBox = it.alreadyInBox == 1L
             )
         }
@@ -147,7 +148,8 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
                 id = if (item.id == -1L) null else item.id,
                 name = item.name,
                 description = item.description?.ifBlank { null },
-                image = item.image
+                image = item.image,
+                consumable = item.consumable
             )
             insertedItem = itemQueries.selectLastInsertedItem().executeAsOneOrNull()
         }
@@ -165,24 +167,23 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
 
     @Throws(Exception::class)
     fun editItemInBox(
-        itemId: Long,
+        item: ItemInBox,
         boxId: Long,
-        action: ItemAction,
-        item: ItemInBox
+        action: ItemAction
     ) {
         when (action) {
             ItemAction.BORROW, ItemAction.RETURN -> {
                 if ((action == ItemAction.BORROW && item.amountRemovedFromBox == 0L) || (action == ItemAction.RETURN && item.amountRemovedFromBox == 1L)) {
                     itemQueries.reinsertAmountRemovedInBox(
                         boxId = boxId,
-                        itemId = itemId,
+                        itemId = item.id,
                         amountInBox = item.amountInBox,
                         amountRemovedFromBox = if (action == ItemAction.BORROW) 1 else 0
                     )
                 } else {
                     itemQueries.editAmountRemovedInBox(
                         newAmount = item.amountRemovedFromBox + if (action == ItemAction.BORROW) 1 else -1,
-                        itemId = itemId,
+                        itemId = item.id,
                         boxId = boxId
                     )
                 }
@@ -193,21 +194,21 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
                     if (item.amountInBox > 1L) {
                         itemQueries.editAmountInBox(
                             newAmount = item.amountInBox - 1,
-                            itemId = itemId,
+                            itemId = item.id,
                             boxId = boxId
                         )
                     }
                 } else {
                     itemQueries.editAmountInBox(
                         newAmount = item.amountInBox + 1,
-                        itemId = itemId,
+                        itemId = item.id,
                         boxId = boxId
                     )
                 }
             }
 
             ItemAction.DELETE -> {
-                itemQueries.deleteFromBox(boxId, itemId)
+                itemQueries.deleteFromBox(boxId, item.id)
             }
         }
     }

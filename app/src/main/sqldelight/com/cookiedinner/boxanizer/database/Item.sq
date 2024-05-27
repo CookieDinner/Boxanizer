@@ -1,8 +1,11 @@
+import kotlin.Boolean;
+
 CREATE TABLE Item (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     description TEXT,
-    image BLOB
+    image BLOB,
+    consumable INTEGER AS Boolean NOT NULL DEFAULT 0
 );
 
 CREATE INDEX item_name ON Item(name);
@@ -68,7 +71,7 @@ AND (BoxItem.itemId IS NULL OR BoxItem.boxId = :boxId)
 ORDER BY Item.name;
 
 insert:
-INSERT OR REPLACE INTO Item VALUES (:id, :name, :description, :image);
+INSERT OR REPLACE INTO Item VALUES (?, ?, ?, ?, ?);
 
 selectLastInsertedItem:
 SELECT * FROM Item WHERE id = last_insert_rowid();

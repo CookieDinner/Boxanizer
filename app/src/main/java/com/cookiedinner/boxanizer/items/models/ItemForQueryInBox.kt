@@ -5,5 +5,6 @@ data class ItemForQueryInBox(
     val name: String,
     val description: String?,
     val image: ByteArray?,
+    val consumable: Boolean,
     val alreadyInBox: Boolean
 )

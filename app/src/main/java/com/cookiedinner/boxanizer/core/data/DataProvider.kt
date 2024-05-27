@@ -95,12 +95,11 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
 
     @Throws(Exception::class)
     fun editItemInBox(
-        itemId: Long,
+        item: ItemInBox,
         boxId: Long,
         action: ItemAction,
-        item: ItemInBox
     ) {
-        database.editItemInBox(itemId, boxId, action, item)
+        database.editItemInBox(item, boxId, action)
     }
 
     @Throws(Exception::class)

@@ -126,7 +126,7 @@ class BoxDetailsViewModel(
             try {
                 _items.update { map ->
                     val itemToMove = map?.values?.flatten()?.first { it.item.id == itemId } ?: throw Exception()
-                    dataProvider.editItemInBox(itemId, _currentBox.value?.id ?: -1, action, itemToMove.item)
+                    dataProvider.editItemInBox(itemToMove.item, _currentBox.value?.id ?: -1, action)
                     when (action) {
                         /**
                          * When the item, upon taking it out of the box, has to move between sections, we initialize the exit animation, wait a moment

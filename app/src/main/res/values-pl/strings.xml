@@ -20,7 +20,7 @@
     <string name="about">O APLIKACJI</string>
     <string name="app_version">Wersja aplikacji</string>
     <string name="check_for_updates">Sprawdź aktualizacje</string>
-    <string name="empty_boxes">Nie masz jeszcze żadnych pudełek.\nAby dodać jedno kliknij przycisk \"+\" w prawym dolnym rogu ekranu</string>
+    <string name="empty_boxes">Nie masz jeszcze żadnych pudełek. Aby dodać jedno kliknij przycisk menu w prawym dolnym rogu ekranu a następnie kliknij \"+\"</string>
     <string name="empty_boxes_query">Nie znaleziono pudełek dla zapytania</string>
     <string name="add_box">Dodaj pudełko</string>
     <string name="box_details_error">Błąd pobierania danych pudełka</string>
@@ -38,7 +38,7 @@
     <string name="box_picture">Zdjęcie pudełka</string>
     <string name="back_screen">Powrót to poprzedniego ekranu</string>
     <string name="items_error">Błąd pobierania przedmiotów</string>
-    <string name="empty_items">Nie masz jeszcze żadnych przedmiotów.\nAby dodać jedno kliknij przycisk \"+\" w prawym dolnym rogu ekranu</string>
+    <string name="empty_items">Nie masz jeszcze żadnych przedmiotów. Aby dodać jeden kliknij przycisk menu w prawym dolnym rogu ekranu a następnie kliknij \"+\"</string>
     <string name="save_item">Zapisz przedmiot</string>
     <string name="item_details_error">Błąd pobierania danych przedmiotu</string>
     <string name="item_save_error">Nie udało się zapisać przedmiotu</string>
@@ -51,7 +51,7 @@
     <string name="removed_from_boxes">Wyjęte z pudełek</string>
     <string name="in_boxes">W pudełkach</string>
     <string name="not_in_any_boxes">W żadnych pudełkach</string>
-    <string name="search">Wyszukaj...</string>
+    <string name="search">Wyszukaj…</string>
     <string name="edit_search">Edytuj frazę wyszukiwania</string>
     <string name="search2">Wyszukaj</string>
     <string name="close_floating_menu">Zamknij menu podręczne</string>
@@ -82,4 +82,5 @@
     <string name="open">Otwórz</string>
     <string name="you_have_the_newest_version">Masz najnowszą wersję!</string>
     <string name="failed_to_check_for_updates">Nie udało się sprawdzić aktualizacji</string>
+    <string name="consumable">Zużywalny</string>
 </resources>

@@ -20,8 +20,11 @@ import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.NorthEast
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.SubdirectoryArrowLeft
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -47,11 +50,14 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.components.AnimatedCounter
+import com.cookiedinner.boxanizer.core.components.CustomBadge
+import com.cookiedinner.boxanizer.core.components.CustomBadgedBox
 import com.cookiedinner.boxanizer.core.components.DeletableCard
 import com.cookiedinner.boxanizer.core.models.Direction
 import com.cookiedinner.boxanizer.core.utilities.trimNewLines
 import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.database.ItemInBox
+import com.cookiedinner.boxanizer.items.models.ItemAction
 
 @Composable
 fun ItemComponent(
@@ -101,11 +107,7 @@ fun ItemComponent(
     modifier: Modifier = Modifier,
     itemInBox: ItemInBox,
     onClick: () -> Unit,
-    onDelete: () -> Unit,
-    onBorrowed: (() -> Unit) -> Unit,
-    onReturned: (() -> Unit) -> Unit,
-    onAdded: (() -> Unit) -> Unit,
-    onRemoved: (() -> Unit) -> Unit
+    onAction: (ItemAction, () -> Unit) -> Unit,
 ) {
     var interactable by remember {
         mutableStateOf(true)
@@ -116,7 +118,9 @@ fun ItemComponent(
     DeletableCard(
         modifier = modifier,
         onClick = onClick,
-        onDelete = onDelete,
+        onDelete = {
+            onAction(ItemAction.DELETE) {}
+        },
         onExpanded = {
             cardExpanded = it
         }
@@ -132,7 +136,8 @@ fun ItemComponent(
                     id = itemInBox.id,
                     name = itemInBox.name,
                     description = itemInBox.description,
-                    image = itemInBox.image
+                    image = itemInBox.image,
+                    consumable = itemInBox.consumable
                 )
             )
             Row(
@@ -143,11 +148,11 @@ fun ItemComponent(
                     onClick = {
                         interactable = false
                         if (cardExpanded) {
-                            onRemoved {
+                            onAction(ItemAction.REMOVE) {
                                 interactable = true
                             }
                         } else {
-                            onReturned {
+                            onAction(ItemAction.RETURN) {
                                 interactable = true
                             }
                         }
@@ -203,11 +208,11 @@ fun ItemComponent(
                         onClick = {
                             interactable = false
                             if (cardExpanded) {
-                                onAdded {
+                                onAction(ItemAction.ADD) {
                                     interactable = true
                                 }
                             } else {
-                                onBorrowed {
+                                onAction(ItemAction.BORROW) {
                                     interactable = true
                                 }
                             }
@@ -235,44 +240,60 @@ private fun ItemContent(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        SubcomposeAsyncImage(
-            modifier = Modifier
-                .heightIn(0.dp, 48.dp)
-                .width(48.dp)
-                .clip(MaterialTheme.shapes.extraSmall)
-                .then(
-                    if (item.image != null)
-                        Modifier.border(
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline),
-                            shape = MaterialTheme.shapes.extraSmall
+        CustomBadgedBox(
+            percentageMoved = 0.3f,
+            badge = {
+                if (item.image != null) {
+                    CustomBadge(
+                        color = if (item.consumable) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
+                    ) {
+                        Icon(
+                            imageVector = if (item.consumable) Icons.Default.Science else Icons.Default.Construction,
+                            contentDescription = ""
                         )
-                    else
-                        Modifier
-                ),
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(item.image)
-                .crossfade(true)
-                .size(Size.ORIGINAL)
-                .build(),
-            contentScale = ContentScale.FillBounds,
-            error = {
-                Icon(
-                    modifier = Modifier.size(28.dp),
-                    imageVector = Icons.Default.Construction,
-                    contentDescription = "",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            loading = {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(Modifier.size(28.dp))
+                    }
                 }
-            },
-            contentDescription = stringResource(R.string.box_picture)
-        )
+            }
+        ) {
+            SubcomposeAsyncImage(
+                modifier = Modifier
+                    .heightIn(0.dp, 48.dp)
+                    .width(48.dp)
+                    .clip(MaterialTheme.shapes.extraSmall)
+                    .then(
+                        if (item.image != null)
+                            Modifier.border(
+                                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline),
+                                shape = MaterialTheme.shapes.extraSmall
+                            )
+                        else
+                            Modifier
+                    ),
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(item.image)
+                    .crossfade(true)
+                    .size(Size.ORIGINAL)
+                    .build(),
+                contentScale = ContentScale.FillBounds,
+                error = {
+                    Icon(
+                        modifier = Modifier.size(28.dp),
+                        imageVector = if (item.consumable) Icons.Default.Science else Icons.Default.Construction,
+                        contentDescription = "",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                loading = {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(Modifier.size(28.dp))
+                    }
+                },
+                contentDescription = stringResource(R.string.box_picture)
+            )
+        }
         Column(modifier = Modifier.padding(start = 16.dp)) {
             Text(
                 text = item.name,

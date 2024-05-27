@@ -20,7 +20,7 @@
     <string name="about">ABOUT</string>
     <string name="app_version">App version</string>
     <string name="check_for_updates">Check for updates</string>
-    <string name="empty_boxes">You don\'t have any boxes yet.\nTo add one press the \"+\" button in the bottom right corner of the screen</string>
+    <string name="empty_boxes">You don\'t have any boxes yet. To add one press the menu button in the bottom right corner of the screen and press \"+\"</string>
     <string name="empty_boxes_query">No boxes found for the query</string>
     <string name="add_box">Add box</string>
     <string name="box_details_error">Failed to fetch box details</string>
@@ -38,7 +38,7 @@
     <string name="box_picture">Box picture</string>
     <string name="back_screen">Return to previous screen</string>
     <string name="items_error">Failed to fetch items</string>
-    <string name="empty_items">You don\'t have any items yet.\nTo add one press the \"+\" button in the bottom right corner of the screen</string>
+    <string name="empty_items">You don\'t have any items yet. To add one press the menu button in the bottom right corner of the screen and press \"+\"</string>
     <string name="save_item">Save item</string>
     <string name="item_details_error">Failed to fetch item details</string>
     <string name="item_save_error">Couldn\'t save the item</string>
@@ -51,7 +51,7 @@
     <string name="removed_from_boxes">Removed from boxes</string>
     <string name="in_boxes">In boxes</string>
     <string name="not_in_any_boxes">Not in any boxes</string>
-    <string name="search">Search...</string>
+    <string name="search">Search…</string>
     <string name="edit_search">Edit search</string>
     <string name="search2">Search</string>
     <string name="close_floating_menu">Close floating menu</string>
@@ -82,4 +82,5 @@
     <string name="open">Open</string>
     <string name="you_have_the_newest_version">You have the newest version!</string>
     <string name="failed_to_check_for_updates">Failed to check for updates</string>
+    <string name="consumable">Consumable</string>
 </resources>

@@ -367,11 +367,11 @@ private fun BoxDetailsScreenContent(
                                         onDismissRequest = { dropdownVisibilityOverride = false },
                                     ) {
                                         val extraItem = if (searchText.isNotBlank() && searchItems.none { it.name == searchText })
-                                            listOf(ItemForQueryInBox(id = -1, name = searchText, description = null, image = null, alreadyInBox = false))
+                                            listOf(ItemForQueryInBox(id = -1, name = searchText, description = null, image = null, consumable = false, alreadyInBox = false))
                                         else
                                             listOf()
                                         (extraItem + searchItems).forEach {
-                                            val item = Item(it.id, it.name, it.description, it.image)
+                                            val item = Item(it.id, it.name, it.description, it.image, it.consumable)
                                             ItemComponent(
                                                 item = item,
                                                 onClick = {
@@ -440,20 +440,8 @@ private fun BoxDetailsScreenContent(
                                 onClick = {
                                     onItemClick(it.item.id)
                                 },
-                                onDelete = {
-                                    onItemEdited(it.item.id, ItemAction.DELETE) {}
-                                },
-                                onBorrowed = { callback ->
-                                    onItemEdited(it.item.id, ItemAction.BORROW, callback)
-                                },
-                                onReturned = { callback ->
-                                    onItemEdited(it.item.id, ItemAction.RETURN, callback)
-                                },
-                                onAdded = { callback ->
-                                    onItemEdited(it.item.id, ItemAction.ADD, callback)
-                                },
-                                onRemoved = { callback ->
-                                    onItemEdited(it.item.id, ItemAction.REMOVE, callback)
+                                onAction = { action, callback ->
+                                    onItemEdited(it.item.id, action, callback)
                                 }
                             )
                         }

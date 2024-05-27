@@ -5,15 +5,18 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.BasicTextField
@@ -22,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
@@ -38,7 +42,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
@@ -235,6 +241,36 @@ private fun ItemDetailsScreenContent(
                         )
                     }
                 )
+            }
+            item {
+                Row(
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .clip(MaterialTheme.shapes.extraSmall)
+                        .clickable {
+                            editItem(
+                                item?.copy(
+                                    consumable = !item.consumable
+                                )
+                            )
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = item?.consumable ?: false,
+                        onCheckedChange = {
+                            editItem(
+                                item?.copy(
+                                    consumable = !item.consumable
+                                )
+                            )
+                        }
+                    )
+                    Text(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        text = stringResource(R.string.consumable)
+                    )
+                }
             }
             item {
                 if (tags != null) {
