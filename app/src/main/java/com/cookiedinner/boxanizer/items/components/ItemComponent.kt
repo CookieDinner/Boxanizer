@@ -106,7 +106,7 @@ fun ItemComponent(
     itemInBox: ItemInBox,
     highlighted: Boolean = false,
     onClick: () -> Unit,
-    onAction: (ItemAction, () -> Unit) -> Unit,
+    onAction: (ItemAction?, () -> Unit) -> Unit,
 ) {
     var interactable by remember {
         mutableStateOf(true)
@@ -122,6 +122,7 @@ fun ItemComponent(
         },
         onExpanded = {
             cardExpanded = it
+            onAction(null) {}
         },
         highlighted = highlighted
     ) {
