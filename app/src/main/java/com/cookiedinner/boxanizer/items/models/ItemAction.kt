@@ -5,5 +5,7 @@ enum class ItemAction {
     RETURN,
     REMOVE,
     ADD,
-    DELETE
+    DELETE,
+    CONSUME,
+    BUY
 }

@@ -3,5 +3,6 @@ CREATE TABLE BoxItem (
     itemId INTEGER NOT NULL,
     amountInBox INTEGER NOT NULL DEFAULT 1,
     amountRemovedFromBox INTEGER NOT NULL DEFAULT 0,
+    amountToBuy INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (boxId, itemId)
 );

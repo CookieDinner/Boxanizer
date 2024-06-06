@@ -5,10 +5,12 @@ CREATE TABLE Item (
     name TEXT NOT NULL,
     description TEXT,
     image BLOB,
-    consumable INTEGER AS Boolean NOT NULL DEFAULT 0
+    consumable INTEGER AS Boolean NOT NULL DEFAULT 0,
+    itemAmountToBuy INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX item_name ON Item(name);
+CREATE INDEX item_description ON Item(description);
 
 selectAll:
 SELECT * FROM Item;
@@ -71,7 +73,7 @@ AND (BoxItem.itemId IS NULL OR BoxItem.boxId = :boxId)
 ORDER BY Item.name;
 
 insert:
-INSERT OR REPLACE INTO Item VALUES (?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO Item(id, name, description, image, consumable) VALUES (?, ?, ?, ?, ?);
 
 selectLastInsertedItem:
 SELECT * FROM Item WHERE id = last_insert_rowid();
@@ -96,8 +98,12 @@ editAmountRemovedInBox:
 UPDATE BoxItem SET amountRemovedFromBox = :newAmount
 WHERE itemId = :itemId AND boxId = :boxId;
 
-reinsertAmountRemovedInBox:
-INSERT OR REPLACE INTO BoxItem VALUES (?, ?, ?, ?);
+editAmountToBuyInBox:
+UPDATE BoxItem SET amountToBuy = :newAmount
+WHERE itemId = :itemId AND boxId = :boxId;
+
+reinsertItemInBox:
+INSERT OR REPLACE INTO BoxItem VALUES (?, ?, ?, ?, ?);
 
 editAmountInBox:
 UPDATE BoxItem SET amountInBox = :newAmount

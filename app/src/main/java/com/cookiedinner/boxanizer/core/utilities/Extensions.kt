@@ -5,11 +5,13 @@ import android.content.ContextWrapper
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.ComponentActivity
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
@@ -92,3 +94,9 @@ fun <T> Iterable<T>.indexMap(): Map<T, Int> {
     }
     return map
 }
+
+fun IconButtonColors.getContainerColor(enabled: Boolean): Color =
+    if (enabled) containerColor else disabledContainerColor
+
+fun IconButtonColors.getContentColor(enabled: Boolean): Color =
+    if (enabled) contentColor else disabledContentColor

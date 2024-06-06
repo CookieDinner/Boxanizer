@@ -1,0 +1,4 @@
+ALTER TABLE BoxItem ADD COLUMN amountToBuy INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE Item ADD COLUMN itemAmountToBuy INTEGER NOT NULL DEFAULT 0;
+CREATE INDEX itemTag_name ON ItemTag(name);
+CREATE INDEX item_description ON Item(description);

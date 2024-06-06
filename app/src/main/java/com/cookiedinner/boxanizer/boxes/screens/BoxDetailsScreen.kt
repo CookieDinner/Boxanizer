@@ -134,7 +134,7 @@ fun BoxDetailsScreen(
         onItemClick = {
             navigator.navigateToScreen("${NavigationScreens.ItemDetailsScreen.route}?itemId=$it")
         },
-        searchForItems = viewModel::searchItems,
+        searchForItems = viewModel::searchForItems,
         addItem = viewModel::addItem,
         highlightedItemId = itemId
     )
@@ -150,7 +150,7 @@ private fun BoxDetailsScreenContent(
     editBox: (Box?) -> Unit,
     codeError: InputErrorType,
     nameError: Boolean,
-    onItemEdited: (Long, ItemAction, () -> Unit) -> Unit,
+    onItemEdited: (Long, ItemAction, Long, () -> Unit) -> Unit,
     onItemClick: (Long) -> Unit,
     searchForItems: (String) -> Unit,
     addItem: (Item) -> Unit,
@@ -382,7 +382,7 @@ private fun BoxDetailsScreenContent(
                                         else
                                             listOf()
                                         (extraItem + searchItems).forEach {
-                                            val item = Item(it.id, it.name, it.description, it.image, it.consumable)
+                                            val item = Item(it.id, it.name, it.description, it.image, it.consumable, 0)
                                             ItemComponent(
                                                 item = item,
                                                 onClick = {
@@ -458,7 +458,13 @@ private fun BoxDetailsScreenContent(
                                     if (shouldHighlight)
                                         highlightedItem = false
                                     if (action != null)
-                                        onItemEdited(it.item.id, action, callback)
+                                        onItemEdited(it.item.id, action, 1, callback)
+                                },
+                                onHeldAction = { action, callback ->
+                                    if (shouldHighlight)
+                                        highlightedItem = false
+                                    if (action != null)
+                                        onItemEdited(it.item.id, action, 2, callback)
                                 },
                                 highlighted = highlightedItem && highlightedItemId == it.item.id
                             )

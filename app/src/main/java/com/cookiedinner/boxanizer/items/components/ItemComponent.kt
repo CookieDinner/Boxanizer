@@ -1,8 +1,11 @@
 package com.cookiedinner.boxanizer.items.components
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +53,7 @@ import com.cookiedinner.boxanizer.R
 import com.cookiedinner.boxanizer.core.components.AnimatedCounter
 import com.cookiedinner.boxanizer.core.components.CustomBadge
 import com.cookiedinner.boxanizer.core.components.CustomBadgedBox
+import com.cookiedinner.boxanizer.core.components.CustomFilledIconButton
 import com.cookiedinner.boxanizer.core.components.DeletableCard
 import com.cookiedinner.boxanizer.core.models.Direction
 import com.cookiedinner.boxanizer.core.utilities.trimNewLines
@@ -107,6 +111,7 @@ fun ItemComponent(
     highlighted: Boolean = false,
     onClick: () -> Unit,
     onAction: (ItemAction?, () -> Unit) -> Unit,
+    onHeldAction: (ItemAction?, () -> Unit) -> Unit
 ) {
     var interactable by remember {
         mutableStateOf(true)
@@ -138,14 +143,15 @@ fun ItemComponent(
                     name = itemInBox.name,
                     description = itemInBox.description,
                     image = itemInBox.image,
-                    consumable = itemInBox.consumable
+                    consumable = itemInBox.consumable,
+                    itemAmountToBuy = itemInBox.itemAmountToBuy
                 )
             )
             Row(
                 modifier = Modifier.padding(start = 8.dp),
                 verticalAlignment = Alignment.Bottom
             ) {
-                FilledIconButton(
+                CustomFilledIconButton(
                     onClick = {
                         interactable = false
                         if (cardExpanded) {
@@ -154,6 +160,18 @@ fun ItemComponent(
                             }
                         } else {
                             onAction(ItemAction.RETURN) {
+                                interactable = true
+                            }
+                        }
+                    },
+                    onLongClick = {
+                        interactable = false
+                        if (cardExpanded) {
+                            onHeldAction(ItemAction.REMOVE) {
+                                interactable = true
+                            }
+                        } else {
+                            onHeldAction(ItemAction.RETURN) {
                                 interactable = true
                             }
                         }
@@ -205,7 +223,7 @@ fun ItemComponent(
                             incrementDirection = Direction.RIGHT
                         )
                     }
-                    FilledIconButton(
+                    CustomFilledIconButton(
                         onClick = {
                             interactable = false
                             if (cardExpanded) {
@@ -214,6 +232,18 @@ fun ItemComponent(
                                 }
                             } else {
                                 onAction(ItemAction.BORROW) {
+                                    interactable = true
+                                }
+                            }
+                        },
+                        onLongClick = {
+                            interactable = false
+                            if (cardExpanded) {
+                                onHeldAction(ItemAction.ADD) {
+                                    interactable = true
+                                }
+                            } else {
+                                onHeldAction(ItemAction.BORROW) {
                                     interactable = true
                                 }
                             }

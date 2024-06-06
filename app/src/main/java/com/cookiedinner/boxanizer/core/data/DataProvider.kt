@@ -98,8 +98,9 @@ class DataProvider(databaseDriverFactory: DatabaseDriverFactory) {
         item: ItemInBox,
         boxId: Long,
         action: ItemAction,
+        customAmount: Long
     ) {
-        database.editItemInBox(item, boxId, action)
+        database.editItemInBox(item, boxId, action, customAmount)
     }
 
     @Throws(Exception::class)

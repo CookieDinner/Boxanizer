@@ -169,20 +169,46 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
     fun editItemInBox(
         item: ItemInBox,
         boxId: Long,
-        action: ItemAction
+        action: ItemAction,
+        customAmount: Long = 1L
     ) {
         when (action) {
             ItemAction.BORROW, ItemAction.RETURN -> {
-                if ((action == ItemAction.BORROW && item.amountRemovedFromBox == 0L) || (action == ItemAction.RETURN && item.amountRemovedFromBox == 1L)) {
-                    itemQueries.reinsertAmountRemovedInBox(
+                if ((action == ItemAction.BORROW && item.amountRemovedFromBox == 0L) || (action == ItemAction.RETURN && item.amountRemovedFromBox == customAmount)) {
+                    /**
+                     * This is only necessary to update the rowId to the largest one in the table for sorting purposes
+                     */
+                    itemQueries.reinsertItemInBox(
                         boxId = boxId,
                         itemId = item.id,
                         amountInBox = item.amountInBox,
-                        amountRemovedFromBox = if (action == ItemAction.BORROW) 1 else 0
+                        amountRemovedFromBox = if (action == ItemAction.BORROW) customAmount else 0,
+                        amountToBuy = item.amountToBuy
                     )
                 } else {
                     itemQueries.editAmountRemovedInBox(
-                        newAmount = item.amountRemovedFromBox + if (action == ItemAction.BORROW) 1 else -1,
+                        newAmount = item.amountRemovedFromBox + if (action == ItemAction.BORROW) customAmount else -customAmount,
+                        itemId = item.id,
+                        boxId = boxId
+                    )
+                }
+            }
+
+            ItemAction.CONSUME, ItemAction.BUY -> {
+                if ((action == ItemAction.CONSUME && item.amountToBuy == 0L) || (action == ItemAction.BUY && item.amountToBuy == customAmount)) {
+                    /**
+                     * This is (once again) only necessary to update the rowId to the largest one in the table for sorting purposes
+                     */
+                    itemQueries.reinsertItemInBox(
+                        boxId = boxId,
+                        itemId = item.id,
+                        amountInBox = item.amountInBox,
+                        amountRemovedFromBox = item.amountRemovedFromBox,
+                        amountToBuy = if (action == ItemAction.CONSUME) customAmount else 0
+                    )
+                } else {
+                    itemQueries.editAmountToBuyInBox(
+                        newAmount = item.amountToBuy + if (action == ItemAction.CONSUME) customAmount else -customAmount,
                         itemId = item.id,
                         boxId = boxId
                     )
@@ -191,16 +217,16 @@ class Database(databaseDriverFactory: DatabaseDriverFactory) {
 
             ItemAction.ADD, ItemAction.REMOVE -> {
                 if (action == ItemAction.REMOVE) {
-                    if (item.amountInBox > 1L) {
+                    if (item.amountInBox > customAmount) {
                         itemQueries.editAmountInBox(
-                            newAmount = item.amountInBox - 1,
+                            newAmount = item.amountInBox - customAmount,
                             itemId = item.id,
                             boxId = boxId
                         )
                     }
                 } else {
                     itemQueries.editAmountInBox(
-                        newAmount = item.amountInBox + 1,
+                        newAmount = item.amountInBox + customAmount,
                         itemId = item.id,
                         boxId = boxId
                     )

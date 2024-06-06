@@ -142,13 +142,14 @@ class BoxDetailsViewModel(
     fun editItemInBox(
         itemId: Long,
         action: ItemAction,
+        customAmount: Long = 1L,
         callback: () -> Unit
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _items.update { map ->
                     val itemToMove = map?.values?.flatten()?.first { it.item.id == itemId } ?: throw Exception()
-                    dataProvider.editItemInBox(itemToMove.item, _currentBox.value?.id ?: -1, action)
+                    dataProvider.editItemInBox(itemToMove.item, _currentBox.value?.id ?: -1, action, customAmount)
                     when (action) {
                         /**
                          * When the item, upon taking it out of the box, has to move between sections, we initialize the exit animation, wait a moment
@@ -168,14 +169,14 @@ class BoxDetailsViewModel(
 
                                         else -> listOf(
                                             ItemInBoxWithTransition(
-                                                item = itemToMove.item.copy(amountRemovedFromBox = 1),
+                                                item = itemToMove.item.copy(amountRemovedFromBox = customAmount),
                                                 transitionState = MutableTransitionState(false)
                                             )
                                         ) + it.value
                                     }
                                 }
 
-                                action == ItemAction.RETURN && itemToMove.item.amountRemovedFromBox == 1L -> map.mapValues {
+                                action == ItemAction.RETURN && itemToMove.item.amountRemovedFromBox == customAmount -> map.mapValues {
                                     when (it.key) {
                                         ItemListType.REMOVED -> {
                                             itemToMove.transitionState.targetState = false
@@ -198,8 +199,61 @@ class BoxDetailsViewModel(
                                             itemInBox.copy(
                                                 item = itemInBox.item.copy(
                                                     amountRemovedFromBox = itemInBox.item.amountRemovedFromBox + when (action) {
-                                                        ItemAction.BORROW -> 1
-                                                        else -> -1
+                                                        ItemAction.BORROW -> customAmount
+                                                        else -> -customAmount
+                                                    }
+                                                )
+                                            )
+                                        } else
+                                            itemInBox
+                                    }
+                                }
+                            }
+                        }
+
+                        ItemAction.CONSUME, ItemAction.BUY -> {
+                            when {
+                                action == ItemAction.CONSUME && itemToMove.item.amountToBuy == 0L -> map.mapValues {
+                                    when (it.key) {
+                                        ItemListType.IN_BOXES -> {
+                                            itemToMove.transitionState.targetState = false
+                                            delay(200)
+                                            it.value.filterNot { itemInBox -> itemInBox.item.id == itemId }
+                                        }
+
+                                        else -> listOf(
+                                            ItemInBoxWithTransition(
+                                                item = itemToMove.item.copy(amountToBuy = customAmount),
+                                                transitionState = MutableTransitionState(false)
+                                            )
+                                        ) + it.value
+                                    }
+                                }
+                                action == ItemAction.BUY && itemToMove.item.amountToBuy == customAmount -> map.mapValues {
+                                    when (it.key) {
+                                        ItemListType.REMOVED -> {
+                                            itemToMove.transitionState.targetState = false
+                                            delay(200)
+                                            it.value.filterNot { itemInBox -> itemInBox.item.id == itemId }
+                                        }
+
+                                        else -> listOf(
+                                            ItemInBoxWithTransition(
+                                                item = itemToMove.item.copy(amountToBuy = 0),
+                                                transitionState = MutableTransitionState(false)
+                                            )
+                                        ) + it.value
+                                    }
+                                }
+
+                                else -> map.mapValues {
+                                    it.value.map { itemInBox ->
+                                        if (itemInBox.item.id == itemId) {
+                                            itemInBox.copy(
+                                                item = itemInBox.item.copy(
+                                                    amountToBuy = itemInBox.item.amountToBuy + when (action) {
+                                                        ItemAction.CONSUME -> customAmount
+                                                        else -> -customAmount
                                                     }
                                                 )
                                             )
@@ -211,7 +265,7 @@ class BoxDetailsViewModel(
                         }
 
                         ItemAction.ADD, ItemAction.REMOVE -> {
-                            if (action == ItemAction.REMOVE && itemToMove.item.amountInBox == 1L) {
+                            if (action == ItemAction.REMOVE && itemToMove.item.amountInBox == customAmount) {
                                 map
                             } else {
                                 map.mapValues {
@@ -220,8 +274,8 @@ class BoxDetailsViewModel(
                                             itemInBox.copy(
                                                 item = itemInBox.item.copy(
                                                     amountInBox = itemInBox.item.amountInBox + when (action) {
-                                                        ItemAction.ADD -> 1
-                                                        else -> -1
+                                                        ItemAction.ADD -> customAmount
+                                                        else -> -customAmount
                                                     }
                                                 )
                                             )
@@ -250,13 +304,15 @@ class BoxDetailsViewModel(
                         ItemAction.REMOVE -> context.getString(R.string.item_remove_error)
                         ItemAction.ADD -> context.getString(R.string.item_add_error)
                         ItemAction.DELETE -> context.getString(R.string.item_delete_box_error)
+                        ItemAction.CONSUME -> "Failed to use up item from box"
+                        ItemAction.BUY -> "Failed to buy back item to box"
                     }
                 )
             }
         }
     }
 
-    fun searchItems(query: String) {
+    fun searchForItems(query: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _searchItems.value = dataProvider.getItemsForQueryInBox(query, _currentBox.value?.id ?: return@launch)

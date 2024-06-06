@@ -4,6 +4,8 @@ CREATE TABLE ItemTag (
     PRIMARY KEY (itemId, name)
 );
 
+CREATE INDEX itemTag_name ON ItemTag(name);
+
 selectByItemId:
 SELECT * FROM ItemTag WHERE itemId = :itemId ORDER BY rowid;
 
