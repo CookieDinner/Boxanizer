@@ -83,4 +83,12 @@
     <string name="you_have_the_newest_version">Masz najnowszą wersję!</string>
     <string name="failed_to_check_for_updates">Nie udało się sprawdzić aktualizacji</string>
     <string name="consumable">Zużywalny</string>
+    <string name="amount_dialog_label">%1$s niestandardową ilość (1 - %2$d)</string>
+    <string name="take_out">Wyciągnij</string>
+    <string name="return_">Zwróć</string>
+    <string name="subtract">Odejmij</string>
+    <string name="add">Dodaj</string>
+    <string name="change_by">Zmień o</string>
+    <string name="invalid_amount">Niepoprawna ilość!</string>
+    <string name="confirm">Zatwierdź</string>
 </resources>

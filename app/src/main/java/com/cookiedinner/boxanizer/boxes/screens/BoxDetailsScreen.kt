@@ -454,17 +454,11 @@ private fun BoxDetailsScreenContent(
                                         highlightedItem = false
                                     onItemClick(it.item.id)
                                 },
-                                onAction = { action, callback ->
+                                onAction = { action, amount, callback ->
                                     if (shouldHighlight)
                                         highlightedItem = false
                                     if (action != null)
-                                        onItemEdited(it.item.id, action, 1, callback)
-                                },
-                                onHeldAction = { action, callback ->
-                                    if (shouldHighlight)
-                                        highlightedItem = false
-                                    if (action != null)
-                                        onItemEdited(it.item.id, action, 2, callback)
+                                        onItemEdited(it.item.id, action, amount, callback)
                                 },
                                 highlighted = highlightedItem && highlightedItemId == it.item.id
                             )

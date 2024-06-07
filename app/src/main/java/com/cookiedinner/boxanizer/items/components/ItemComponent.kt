@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Construction
@@ -26,24 +28,34 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.SubdirectoryArrowLeft
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
@@ -60,6 +72,8 @@ import com.cookiedinner.boxanizer.core.utilities.trimNewLines
 import com.cookiedinner.boxanizer.database.Item
 import com.cookiedinner.boxanizer.database.ItemInBox
 import com.cookiedinner.boxanizer.items.models.ItemAction
+import com.cookiedinner.boxanizer.items.models.rememberAmountDialogState
+import java.util.regex.Pattern
 
 @Composable
 fun ItemComponent(
@@ -110,24 +124,111 @@ fun ItemComponent(
     itemInBox: ItemInBox,
     highlighted: Boolean = false,
     onClick: () -> Unit,
-    onAction: (ItemAction?, () -> Unit) -> Unit,
-    onHeldAction: (ItemAction?, () -> Unit) -> Unit
+    onAction: (ItemAction?, Long, () -> Unit) -> Unit
 ) {
-    var interactable by remember {
+    var interactable by rememberSaveable {
         mutableStateOf(true)
     }
-    var cardExpanded by remember {
+    var cardExpanded by rememberSaveable {
         mutableStateOf(false)
+    }
+    val focusRequester = remember {
+        FocusRequester()
+    }
+    val dialogState = rememberAmountDialogState()
+    if (dialogState.visible) {
+        AlertDialog(
+            onDismissRequest = { dialogState.hide() },
+            confirmButton = {
+                TextButton(
+                    enabled = dialogState.amountValid,
+                    onClick = {
+                        dialogState.hide()
+                        interactable = false
+                        val amount = dialogState.amount.text.toLongOrNull()
+                        if (amount != null) {
+                            onAction(dialogState.actionType, amount) {
+                                interactable = true
+                            }
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(R.string.confirm))
+                }
+            },
+            text = {
+                val maxAmount = when (dialogState.actionType) {
+                    ItemAction.BORROW, ItemAction.REMOVE -> itemInBox.amountInBox - itemInBox.amountRemovedFromBox
+                    ItemAction.RETURN -> itemInBox.amountRemovedFromBox
+                    else -> 999
+                }
+                LaunchedEffect(dialogState.visible) {
+                    focusRequester.requestFocus()
+                }
+                OutlinedTextField(
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .padding(top = 8.dp),
+                    value = dialogState.amount,
+                    label = {
+                        Text(
+                            text = stringResource(
+                                R.string.amount_dialog_label,
+                                stringResource(
+                                    when (dialogState.actionType) {
+                                        ItemAction.BORROW -> R.string.take_out
+                                        ItemAction.RETURN -> R.string.return_
+                                        ItemAction.REMOVE -> R.string.subtract
+                                        ItemAction.ADD -> R.string.add
+                                        else -> R.string.change_by
+                                    }
+                                ),
+                                maxAmount
+                            )
+                        )
+                    },
+                    isError = !dialogState.amountValid,
+                    supportingText = if (!dialogState.amountValid) {
+                        { Text(text = stringResource(R.string.invalid_amount)) }
+                    } else null,
+                    onValueChange = {
+                        if (Pattern.compile("^\\d*\$").matcher(it.text).matches()) {
+                            dialogState.amount = it
+                            val newAmount = it.text.toLongOrNull()
+                            dialogState.amountValid = newAmount != null && newAmount >= 1 && newAmount <= maxAmount
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done,
+                        keyboardType = KeyboardType.Decimal
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            if (dialogState.amountValid) {
+                                dialogState.hide()
+                                interactable = false
+                                val amount = dialogState.amount.text.toLongOrNull()
+                                if (amount != null) {
+                                    onAction(dialogState.actionType, amount) {
+                                        interactable = true
+                                    }
+                                }
+                            }
+                        }
+                    )
+                )
+            }
+        )
     }
     DeletableCard(
         modifier = modifier,
         onClick = onClick,
         onDelete = {
-            onAction(ItemAction.DELETE) {}
+            onAction(ItemAction.DELETE, 0) {}
         },
         onExpanded = {
             cardExpanded = it
-            onAction(null) {}
+            onAction(null, 0) {}
         },
         highlighted = highlighted
     ) {
@@ -155,25 +256,24 @@ fun ItemComponent(
                     onClick = {
                         interactable = false
                         if (cardExpanded) {
-                            onAction(ItemAction.REMOVE) {
+                            onAction(ItemAction.REMOVE, 1) {
                                 interactable = true
                             }
                         } else {
-                            onAction(ItemAction.RETURN) {
+                            onAction(ItemAction.RETURN, 1) {
                                 interactable = true
                             }
                         }
                     },
                     onLongClick = {
-                        interactable = false
-                        if (cardExpanded) {
-                            onHeldAction(ItemAction.REMOVE) {
-                                interactable = true
+                        when {
+                            cardExpanded && itemInBox.amountInBox - itemInBox.amountRemovedFromBox > 1 -> {
+                                dialogState.show(ItemAction.REMOVE)
                             }
-                        } else {
-                            onHeldAction(ItemAction.RETURN) {
-                                interactable = true
+                            itemInBox.amountRemovedFromBox > 1 -> {
+                                dialogState.show(ItemAction.RETURN)
                             }
+                            else -> {}
                         }
                     },
                     enabled = interactable && if (cardExpanded)
@@ -204,8 +304,8 @@ fun ItemComponent(
                     Column(modifier = Modifier.padding(bottom = 8.dp)) {
                         AnimatedCounter(
                             modifier = Modifier
-                                .padding(horizontal = 14.dp)
-                                .defaultMinSize(minWidth = (9 * itemInBox.amountInBox.toString().length).dp, minHeight = 36.dp),
+                                .padding(horizontal = 4.dp)
+                                .defaultMinSize(minWidth = 36.dp, minHeight = 36.dp),
                             number = itemInBox.amountInBox - itemInBox.amountRemovedFromBox,
                             incrementDirection = Direction.DOWN
                         )
@@ -227,25 +327,18 @@ fun ItemComponent(
                         onClick = {
                             interactable = false
                             if (cardExpanded) {
-                                onAction(ItemAction.ADD) {
+                                onAction(ItemAction.ADD, 1) {
                                     interactable = true
                                 }
                             } else {
-                                onAction(ItemAction.BORROW) {
+                                onAction(ItemAction.BORROW, 1) {
                                     interactable = true
                                 }
                             }
                         },
                         onLongClick = {
-                            interactable = false
-                            if (cardExpanded) {
-                                onHeldAction(ItemAction.ADD) {
-                                    interactable = true
-                                }
-                            } else {
-                                onHeldAction(ItemAction.BORROW) {
-                                    interactable = true
-                                }
+                            if (cardExpanded || itemInBox.amountRemovedFromBox + 1 < itemInBox.amountInBox) {
+                                dialogState.show(if (cardExpanded) ItemAction.ADD else ItemAction.BORROW)
                             }
                         },
                         enabled = interactable && (cardExpanded || itemInBox.amountRemovedFromBox < itemInBox.amountInBox),
